@@ -3,9 +3,9 @@
 add_library(glad STATIC glad.c)
 
 # Make it visible. Includes should match the directory created.
-# <glad.h> -> YES
-# <glad/glad.h> -> NO
-target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+# <glad.h> -> NO
+# <glad/glad.h> -> YES
+target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Linux/Mac fix
 # also Untested. Likely need dl install

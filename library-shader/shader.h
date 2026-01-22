@@ -1,7 +1,7 @@
 #ifndef _SHADER_H_
 #define _SHADER_H_
 
-#include <glad.h>
+#include <glad/glad.h>
 //#include <elv/render_aux.h>
 #include <filesystem>
 #include <Windows.h>
