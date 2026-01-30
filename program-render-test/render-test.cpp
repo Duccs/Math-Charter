@@ -27,7 +27,9 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	// Using Core Profile
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Fix for MacOS X
+    // Enable MSAA with 4 samples per pixel (can use 2, 4, 8, or 16)
+	glfwWindowHint(GLFW_SAMPLES, 4);	
+    // Fix for MacOS X
 	#ifdef __APPLE__
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	#endif
@@ -43,11 +45,18 @@ int main() {
 	// Callback on user resizing window
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+	// Enable VSync (1 = on, 0 = off)
+	glfwSwapInterval(1);
+
 	// Initialize GLAD (before any OpenGL function ?)
 	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	// Enable MSAA
+    // -----------
+	glEnable(GL_MULTISAMPLE);
 
 	// Create shader program
     // ---------------------
@@ -68,18 +77,45 @@ int main() {
     curve3->setColor(0.0f, 1.0f, 0.0f); // Green sine wave
     Curve2D* curve4 = scene.addCurve("c", 200);
     curve4->setColor(1.0f, 1.0f, 0.0f); // Yellow cosine wave
+    // Curve2D* curve5 = scene.addCurve("t", 200);
+    // curve5->setColor(1.0f, 0.0f, 1.0f); // Magenta tan(x) - tests adaptive sampling!
 
     // Init shader
     shader.use();
 
-	// uncommnet to retrieve maximum number of vertex attributes supported on device
-	// int nrAttributes;
-	// glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-	// std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+	// FPS tracking variables
+	// ----------------------
+	double lastTime = glfwGetTime();
+	double lastFpsTime = lastTime;
+	int frameCount = 0;
+	double deltaTime = 0.0;
 
     // Render loop
     // -----------
 	while(!glfwWindowShouldClose(window)) {
+
+        // Manual FPS cap -------------------↓↓ change this
+        const double targetFrameTime = 1.0 / 30.0;
+        while (glfwGetTime() - lastTime < targetFrameTime) {
+            // Busy wait or sleep (Thumb twiddling)
+        }
+
+		// Calculate delta time and FPS
+		double currentTime = glfwGetTime();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+		frameCount++;
+
+		// Update FPS counter every second
+		if (currentTime - lastFpsTime >= 1.0) {
+			double fps = frameCount / (currentTime - lastFpsTime);
+			char title[256];
+			snprintf(title, sizeof(title), "Math Charter - FPS: %.1f", fps);
+			glfwSetWindowTitle(window, title);
+			
+			frameCount = 0;
+			lastFpsTime = currentTime;
+		}
 
 		// Input
 		processInput(window, scene);
@@ -122,17 +158,17 @@ void processInput(GLFWwindow *window, GraphScene& scene)
         printf("Spacebar pressed\n");
         //createNextCurve();
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        scene.pan(0.0f, 0.004f);
+        scene.pan(0.0f, 0.07f);
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        scene.pan(0.0f, -0.004f);
+        scene.pan(0.0f, -0.07f);
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        scene.pan(-0.004f, 0.0f);
+        scene.pan(-0.07f, 0.0f);
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        scene.pan(0.004f, 0.0f);
+        scene.pan(0.07f, 0.0f);
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        scene.zoom(0.999f);
+        scene.zoom(0.99f);
     if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        scene.zoom(1.001f);
+        scene.zoom(1.01f);
 }
 
 // Resize viewport on call back

@@ -19,53 +19,90 @@ float mapToScreen(float value, float min, float max) {
     return ((value - min) / (max - min)) * 2.0f - 1.0f;
 }
 
-// Generates vertex data for a given equation. Parsing is outsourced to another method.
-std::vector<float> generateGraphPoints(const char* equation, int numPoints, GraphView view) {
-    std::vector<float> vertices;
+// Evaluate equation at given x value (hard-coded for now)
+float evaluateEquation(const char* equation, float x) {
+    switch (equation[0]) {
+        case 's': // sin(x)
+            return sin(x);
+        case 'c': // cos(x)
+            return cos(x);
+        case 'x': // Parabola
+            return x * x;
+        case 'n': // inverted Parabola
+            return -(x * x);
+        case 't': // tan(x)
+            return tan(x);
+        case 'i': // 1/x (inverse)
+            return (x != 0.0f) ? (1.0f / x) : 0.0f;
+        default:
+            return x;
+    }
+}
+
+// Recursive adaptive tessellation
+void adaptiveTessellate(
+    const char* equation,
+    float x1, float y1,
+    float x2, float y2,
+    GraphView view,
+    std::vector<float>& vertices,
+    float tolerance = 0.005f,  // Max allowed deviation
+    int depth = 0,
+    int maxDepth = 12          // Prevent infinite recursion
+) {
+    // Calculate midpoint
+    float xMid = (x1 + x2) / 2.0f;
+    float yMid = evaluateEquation(equation, xMid);
     
-    double x; // The variable we will change
-
-    // Generate Points
-    float step = (view.maxX - view.minX) / numPoints;
+    // What would linear interpolation predict?
+    float yLinear = (y1 + y2) / 2.0f;
     
-    for (int i = 0; i <= numPoints; ++i) {
-        // Determine Math X
-        float currentX = view.minX + (i * step);
-        
-        // Calculate Y using expression parser
-        x = currentX; // Update the variable pointer
-        float currentY;
-        // TODO: Implement expression parser
-        // Hard code 
-        switch (equation[0]) {
-            case 's': // sin(x)
-                currentY = sin(x);
-                break;
-            case 'c': // cos(x)
-                currentY = cos(x);
-                break;
-            case 'x': // Parabola
-                currentY = x * x;
-                break;
-            case 'n': // inverted Parabola
-                currentY = - (x * x);
-                break;
-            default:
-                currentY = x; //
-                break;
-        }
-        
-
-        // Convert to Screen Coordinates (NDC)
-        float glX = mapToScreen(currentX, view.minX, view.maxX);
-        float glY = mapToScreen(currentY, view.minY, view.maxY);
-
-        // Add to list (z = 0)
+    // How much does the actual curve deviate from straight line?
+    float error = std::abs(yMid - yLinear);
+    
+    // If error is too large and we haven't hit max depth, subdivide
+    if (error > tolerance && depth < maxDepth) {
+        // Recursively subdivide both halves
+        adaptiveTessellate(equation, x1, y1, xMid, yMid, view, vertices, tolerance, depth + 1, maxDepth);
+        adaptiveTessellate(equation, xMid, yMid, x2, y2, view, vertices, tolerance, depth + 1, maxDepth);
+    } else {
+        // Good enough - add the start point (end point added by next segment)
+        float glX = mapToScreen(x1, view.minX, view.maxX);
+        float glY = mapToScreen(y1, view.minY, view.maxY);
         vertices.push_back(glX);
         vertices.push_back(glY);
         vertices.push_back(0.0f);
     }
+}
 
+// Generates vertex data for a given equation using adaptive tessellation
+std::vector<float> generateGraphPoints(const char* equation, int numPoints, GraphView view) {
+    std::vector<float> vertices;
+    
+    // Use adaptive tessellation: starts with initial segments based on numPoints
+    // then subdivides where needed
+    int numSegments = std::max(10, numPoints / 20); // Start with fewer segments
+    float step = (view.maxX - view.minX) / numSegments;
+    
+    for (int i = 0; i < numSegments; ++i) {
+        float x1 = view.minX + (i * step);
+        float x2 = view.minX + ((i + 1) * step);
+        float y1 = evaluateEquation(equation, x1);
+        float y2 = evaluateEquation(equation, x2);
+        
+        // Adaptively tessellate this segment
+        adaptiveTessellate(equation, x1, y1, x2, y2, view, vertices);
+    }
+    
+    // Add the final point
+    float finalX = view.maxX;
+    float finalY = evaluateEquation(equation, finalX);
+    float glX = mapToScreen(finalX, view.minX, view.maxX);
+    float glY = mapToScreen(finalY, view.minY, view.maxY);
+    vertices.push_back(glX);
+    vertices.push_back(glY);
+    vertices.push_back(0.0f);
+    
     return vertices;
 }
 

@@ -22,6 +22,10 @@ std::filesystem::path getPath();
 
 float mapToScreen(float value, float min, float max);
 
+// !!! Remove in future ↓↓↓ !!!
+// Evaluate equation at given x value (uses hard-coded switch)
+float evaluateEquation(const char* equation, float x);
+
 std::vector<float> generateGraphPoints(const char* equation, int numPoints, GraphView view);
 
 std::vector<float> generateGridLines(GraphView view, float gridSpacing = 1.0f);

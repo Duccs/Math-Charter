@@ -39,7 +39,7 @@ void Curve2D::upload() {
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), 
-                 points.data(), GL_STATIC_DRAW);
+                 points.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -48,6 +48,7 @@ void Curve2D::render() {
     if (points.empty()) return;
     
     glBindVertexArray(VAO);
+    glLineWidth(4.0f);
     glDrawArrays(GL_LINE_STRIP, 0, points.size() / 3);
     glBindVertexArray(0);
 }

@@ -73,7 +73,7 @@ void GraphScene::updateView(GraphView newView) {
     // Re-upload grid data
     glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
     glBufferData(GL_ARRAY_BUFFER, gridLines.size() * sizeof(float),
-                 gridLines.data(), GL_STATIC_DRAW);
+                 gridLines.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -121,6 +121,7 @@ void GraphScene::render(Shader& shader, float aspectRatio) {
     if (!gridLines.empty()) {
         shader.setVec3("color", 0.0f, 0.0f, 0.0f);  // Black grid
         glBindVertexArray(gridVAO);
+        glLineWidth(1.0f);
         glDrawArrays(GL_LINES, 0, gridLines.size() / 3);
         glBindVertexArray(0);
     }

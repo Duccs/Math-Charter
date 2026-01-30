@@ -2,8 +2,6 @@
 add_library(curve-lib STATIC 
     curve2d.cpp 
     curve2d.h
-    curves.cpp 
-    curves.h
 )
 
 # Link the library
