@@ -2,17 +2,14 @@
 #define _SHADER_H_
 
 #include <glad/glad.h>
-//#include <elv/render_aux.h>
+#include <helper.h>
 #include <filesystem>
-#include <Windows.h>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <cerrno>
 #include <cstring>
-
-std::filesystem::path getPath();
 
 std::string get_file_contents(const char* filename);
 
@@ -27,6 +24,7 @@ class Shader{
         void setBool(const std::string &name, bool value) const;  
         void setInt(const std::string &name, int value) const;   
         void setFloat(const std::string &name, float value) const;
+        void setVec3(const std::string &name, float x, float y, float z) const;
 
     protected:
         void compileErrors(unsigned int shader, const char* type);

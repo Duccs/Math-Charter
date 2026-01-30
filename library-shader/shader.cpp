@@ -1,20 +1,15 @@
 #include "shader.h"
 
-std::filesystem::path getPath() {
-    char buffer[MAX_PATH];
-    GetModuleFileNameA(NULL, buffer, MAX_PATH);
-    return std::filesystem::path(buffer).parent_path();
-}
-
 std::string get_file_contents(const char* filename)
 {
 	printf("Loading shader: %s\n", filename);
     
-    // Use the fixed project directory path
+    // Get the exe directory path
     std::filesystem::path PATH = getPath();
 
     // Construct the full path to the shader file
-    std::filesystem::path shaderPath = PATH / "src" / filename;
+	// Shaders must all be in "shaders" subdirectory
+    std::filesystem::path shaderPath = PATH / "shaders" / filename;
     printf("Full shader path: %s\n", shaderPath.string().c_str());
     
 	std::ifstream in(shaderPath.string(), std::ios::binary);
@@ -109,4 +104,8 @@ void Shader::setInt(const std::string &name, int value) const
 void Shader::setFloat(const std::string &name, float value) const
 { 
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value); 
+}
+void Shader::setVec3(const std::string &name, float x, float y, float z) const
+{
+    glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 } 

@@ -26,7 +26,10 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 add_subdirectory(lib)
 
 # Define libraries
+add_subdirectory(library-helper)
 add_subdirectory(library-shader)
+add_subdirectory(library-curve)
+add_subdirectory(library-scene)
 
 # Define programs
 add_subdirectory(program-render-test)
