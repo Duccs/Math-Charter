@@ -14,6 +14,13 @@ struct GraphView {
     float maxY =  10.0f;
 };
 
+struct RenderColor {
+    float red = 0.0f;
+    float green =  0.0f;
+    float blue = 0.0f;
+};
+
+
 double red(int r);
 double green(int g);
 double blue(int b);
@@ -27,8 +34,5 @@ float mapToScreen(float value, float min, float max);
 float evaluateEquation(const char* equation, float x);
 
 std::vector<float> generateGraphPoints(const char* equation, int numPoints, GraphView view);
-
-std::vector<float> generateGridLines(GraphView view, float gridSpacing = 1.0f);
-
 
 #endif /*_HELPER_H_*/

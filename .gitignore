@@ -1,6 +1,9 @@
 # Build folder
 build/
 
+# Stuff I want to you to ignore 
+*.PNG
+
 # Prerequisites
 *.d
 

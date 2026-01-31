@@ -64,19 +64,15 @@ int main() {
 
     // Set up graph view size
     // ----------------------
-    GraphView myView = {-5.0f, 5.0f, -5.0f, 5.0f};
+    GraphView view = {-5.0f, 5.0f, -5.0f, 5.0f};
 
 	// Create scene and add curves
     // ---------------------------
-    GraphScene scene(myView, 1.0f);
-    Curve2D* curve = scene.addCurve("x", 200);
-    curve->setColor(1.0f, 0.0f, 0.0f); // Red parabola
-    Curve2D* curve2 = scene.addCurve("n", 200);
-    curve2->setColor(0.0f, 0.0f, 1.0f); // Blue inverted parabola
-    Curve2D* curve3 = scene.addCurve("s", 200);
-    curve3->setColor(0.0f, 1.0f, 0.0f); // Green sine wave
-    Curve2D* curve4 = scene.addCurve("c", 200);
-    curve4->setColor(1.0f, 1.0f, 0.0f); // Yellow cosine wave
+    GraphScene scene(view);
+    Curve2D* curve = scene.addCurve("x", 200, 4.0f, {0.0f, 1.0f, 0.0f}); // Red parabola
+    curve = scene.addCurve("n", 200, 4.0f, {1.0f, 0.0f, 0.0f}); // Blue inverted parabola
+    curve = scene.addCurve("s", 200, 4.0f, {0.0f, 0.0f, 1.0f}); // Green sine wave
+    curve = scene.addCurve("c", 200, 4.0f, {1.0f, 0.7f, 0.0f}); // Yellow cosine wave
     // Curve2D* curve5 = scene.addCurve("t", 200);
     // curve5->setColor(1.0f, 0.0f, 1.0f); // Magenta tan(x) - tests adaptive sampling!
 
