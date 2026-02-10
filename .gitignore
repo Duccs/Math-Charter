@@ -1,7 +1,8 @@
-# Build folder
+# Build folder and vscode settings
 build/
+.vscode/
 
-# Stuff I want to you to ignore 
+# Debug imgs
 *.PNG
 
 # Prerequisites

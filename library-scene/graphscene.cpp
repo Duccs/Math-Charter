@@ -294,6 +294,19 @@ void GraphScene::zoom(float factor) {
     updateView(newView);
 }
 
+// Zoom the view by a factor, centered on a specific world coordinate
+void GraphScene::zoomAt(float worldX, float worldY, float factor) {
+    GraphView newView = view;
+
+    // Scale each edge relative to the focal point
+    newView.minX = worldX + (view.minX - worldX) * factor;
+    newView.maxX = worldX + (view.maxX - worldX) * factor;
+    newView.minY = worldY + (view.minY - worldY) * factor;
+    newView.maxY = worldY + (view.maxY - worldY) * factor;
+
+    updateView(newView);
+}
+
 // Render the entire scene (grid + all curves)
 void GraphScene::render(Shader& shader, float aspectRatio) {
     shader.use();

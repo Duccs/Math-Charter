@@ -8,8 +8,11 @@ uniform vec3 color;
 
 void main()
 {
-   float correctedX = aPos.x / wAspect;
+   // Correct aspect ratio for both landscape and portrait orientations
+   vec2 pos = wAspect > 1.0 
+       ? vec2(aPos.x, aPos.y * wAspect)        // Landscape: stretch Y
+       : vec2(aPos.x / wAspect, aPos.y);       // Portrait: stretch X
 
-   gl_Position = vec4(correctedX, aPos.y, aPos.z, 1.0);
-   vertexColor = color; // set the output variable to the vertex color pulled from the vertex data
+   gl_Position = vec4(pos, aPos.z, 1.0);
+   vertexColor = color;
 }

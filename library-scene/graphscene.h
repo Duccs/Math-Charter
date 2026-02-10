@@ -52,6 +52,7 @@ class GraphScene {
         void updateView(GraphView newView);
         void pan(float dx, float dy);
         void zoom(float factor);
+        void zoomAt(float worldX, float worldY, float factor);
         void render(Shader& shader, float aspectRatio);
 
         // Cleanup

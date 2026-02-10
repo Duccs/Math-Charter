@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <config.h>
 #include <helper.h>
+#include <mouse_controller.h>
 #include <shader.h>
 #include <graphscene.h>
 
@@ -14,8 +16,6 @@ void processInput(GLFWwindow *window, GraphScene& scene);
 
 // settings
 const std::filesystem::path PATH = getPath();
-const unsigned int SCR_WIDTH = 1600;
-const unsigned int SCR_HEIGHT = 1200;
 
 int main() {
 	// Initialize glfw, glad, and window
@@ -69,6 +69,7 @@ int main() {
 	// Create scene and add curves
     // ---------------------------
     GraphScene scene(view);
+
     Curve2D* curve = scene.addCurve("x", 200, 4.0f, {0.0f, 1.0f, 0.0f}); // Red parabola
     curve = scene.addCurve("n", 200, 4.0f, {1.0f, 0.0f, 0.0f}); // Blue inverted parabola
     curve = scene.addCurve("s", 200, 4.0f, {0.0f, 0.0f, 1.0f}); // Green sine wave
@@ -78,6 +79,17 @@ int main() {
 
     // Init shader
     shader.use();
+
+    // Set up mouse controls
+    // ----------------------
+    MouseController mouse(window, &scene.getView());
+    mouse.setPanCallback([&scene](float dx, float dy) {
+        scene.pan(dx, dy);
+    });
+    mouse.setZoomAtCallback([&scene](float worldX, float worldY, float factor) {
+        scene.zoomAt(worldX, worldY, factor);
+    });
+    mouse.install();
 
 	// FPS tracking variables
 	// ----------------------

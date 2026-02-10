@@ -8,10 +8,13 @@ target_link_libraries(render-test PRIVATE
     imgui
 )
 
-# Copy "shaders" folder to the build directory
-add_custom_command(TARGET render-test POST_BUILD
+# Copy "shaders" to the build directory
+add_custom_target(export_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
         "${CMAKE_CURRENT_BINARY_DIR}/shaders"
     COMMENT "Copying shaders to binary directory..."
 )
+
+# Make main depend on the copy task
+add_dependencies(render-test export_shaders)

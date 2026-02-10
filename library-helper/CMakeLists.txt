@@ -2,6 +2,9 @@
 add_library(helper-lib STATIC 
     helper.cpp 
     helper.h
+    config.h
+    mouse_controller.cpp
+    mouse_controller.h
 )
 
 # Link the library
@@ -9,4 +12,4 @@ add_library(helper-lib STATIC
 target_include_directories(helper-lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Throw in other libraries needed. Avoid double throwing cuz why.
-target_link_libraries(helper-lib PUBLIC)
+target_link_libraries(helper-lib PUBLIC glfw)

@@ -1,4 +1,5 @@
 #include <helper.h>
+#include <config.h>
 
 // Color conversion for visual purposes and ease
 // You are absolutely correct! They all do the same thing and are redundant asl.
