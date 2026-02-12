@@ -4,6 +4,7 @@ build/
 
 # Debug imgs
 *.PNG
+*.pdf
 
 # Prerequisites
 *.d
