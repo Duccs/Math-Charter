@@ -8,11 +8,11 @@ target_link_libraries(scanner-test PRIVATE
     helper-lib
 )
 
-# Copy "code.txt" to the build directory
+# Copy "code.txt" to the binary directory
 add_custom_target(copy_code_txt ALL
     COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/code.txt"
-        "${CMAKE_CURRENT_BINARY_DIR}/code.txt"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/code.txt"
     COMMENT "Copying code.txt to binary directory..."
 )
 

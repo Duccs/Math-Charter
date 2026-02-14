@@ -4,12 +4,12 @@
 #include <iostream>
 
 int main() {
-    ScannerClass scanner("code.txt");
+    ScannerClass scanner("code.txt", true);
     MSG("Scanner initialized. Starting tokenization...");
     TokenType tt;
     do {
         TokenClass tc = scanner.GetNextToken();
-        MSG("Line number" << scanner.GetLineNumber() << " " << tc);
+        MSG("Line number " << scanner.GetLineNumber() << " " << tc);
         tt = tc.GetTokenType();
     } while (tt != EOF_TOKEN);
 

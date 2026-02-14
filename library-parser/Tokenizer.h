@@ -33,7 +33,7 @@ enum TokenType {
     COMMA_TOKEN, SEMICOLON_TOKEN,
 
     // Additional Tokens:
-    IDENTIFIER_TOKEN, NUMBER_TOKEN,
+    VARIABLE_TOKEN, IDENTIFIER_TOKEN, NUMBER_TOKEN,
     BAD_TOKEN, EOF_TOKEN, LAST_TOKEN
 
 };
@@ -68,7 +68,7 @@ const std::string gTokenTypeNames[] = {
     "COMMA", "SEMICOLON",
 
     // Additional Tokens:
-    "IDENTIFIER", "NUMBER",
+    "VARIABLE", "IDENTIFIER", "NUMBER",
     "BAD", "EOF"
 };
 

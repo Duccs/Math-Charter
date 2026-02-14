@@ -1,5 +1,6 @@
 # Build folder and vscode settings
 build/
+bin/
 .vscode/
 
 # Debug imgs

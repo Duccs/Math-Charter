@@ -5,7 +5,6 @@
 #include <mouse_controller.h>
 #include <shader.h>
 #include <graphscene.h>
-
 #include <iostream>
 #include <filesystem>
 #include <vector>

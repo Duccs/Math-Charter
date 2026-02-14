@@ -1,8 +1,14 @@
 #include "Scanner.h"
 
-ScannerClass::ScannerClass(const std::string& inputFileName) {
-    Fin.open(inputFileName.c_str(), std::ios::binary);
-    if (!Fin) {
+ScannerClass::ScannerClass(const std::string& inputFileName, bool isFileName) {
+    if (isFileName) {
+        input = new std::ifstream(inputFileName.c_str(), std::ios::binary);
+        ownsStream = true;
+    } else {
+        input = new std::istringstream(inputFileName);
+        ownsStream = true;
+    }
+    if (!input->good()) {
         std::cerr << "Error opening input file " << inputFileName;
         std::exit(1);
     }
@@ -10,8 +16,8 @@ ScannerClass::ScannerClass(const std::string& inputFileName) {
 }
 
 ScannerClass::~ScannerClass() {
-    if (Fin.is_open()) {
-        Fin.close();
+    if (ownsStream) {
+        delete input;
     }
 }
 
@@ -23,7 +29,7 @@ TokenClass ScannerClass::GetNextToken() {
 
     do
     {
-        int c = Fin.get();
+        int c = input->get();
         if (c == '\n') {
             LineNumber++;
         }
@@ -35,12 +41,52 @@ TokenClass ScannerClass::GetNextToken() {
 
     if (previousTokenType == BAD_TOKEN)
     {
-        std::cerr << "Error. BAD_TOKEN from lexeme " << lexeme << " at line " << LineNumber;
-        std::exit(1);
+        throw std::runtime_error("Error. BAD_TOKEN from lexeme " + lexeme + " at line " + std::to_string(LineNumber));
     }
 
     lexeme.pop_back();
-    Fin.unget();
+    input->unget();
 
-    return TokenClass(previousTokenType, lexeme);
+    //TODO: Check from here ↓↓↓↓
+    TokenClass token(previousTokenType, lexeme);
+    
+    // Handle multi-character identifiers that aren't reserved words
+    // These need to be split into individual variables or reserved word tokens
+    if (token.GetTokenType() == IDENTIFIER_TOKEN && lexeme.length() > 1) {
+        // Try to find the longest reserved word prefix
+        std::string reservedPrefix = "";
+        
+        for (size_t i = lexeme.length(); i >= 1; i--) {
+            std::string prefix = lexeme.substr(0, i);
+            TokenClass testToken(IDENTIFIER_TOKEN, prefix);
+            
+            // If the token type changed, this prefix is a reserved word
+            if (testToken.GetTokenType() != IDENTIFIER_TOKEN) {
+                reservedPrefix = prefix;
+                break;
+            }
+        }
+        
+        if (!reservedPrefix.empty()) {
+            // Found a reserved word prefix - put back the remaining characters
+            for (int i = lexeme.length() - 1; i >= (int)reservedPrefix.length(); i--) {
+                input->unget();
+                if (lexeme[i] == '\n') {
+                    LineNumber--;
+                }
+            }
+            return TokenClass(IDENTIFIER_TOKEN, reservedPrefix);
+        } else {
+            // No reserved word found - return first character as VARIABLE_TOKEN
+            for (int i = lexeme.length() - 1; i >= 1; i--) {
+                input->unget();
+                if (lexeme[i] == '\n') {
+                    LineNumber--;
+                }
+            }
+            return TokenClass(VARIABLE_TOKEN, lexeme.substr(0, 1));
+        }
+    }
+
+    return token;
 }

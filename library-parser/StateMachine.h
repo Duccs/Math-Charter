@@ -8,7 +8,10 @@ enum MachineState {
 
     // BASIC STATES
     IDENTIFIER_STATE,           // "abcd"
+    VARIABLE_STATE,             // "x", "y", "z"
     NUMBER_STATE,               // "123", "3.14", ".5",
+    NUMBER_DOT_STATE,           // "1.", "3."
+    FLOAT_STATE,                // "1.0", "3.14", ".5"
 
     // ARITHMETIC STATES
     PLUS_STATE,                // "+"
@@ -34,6 +37,7 @@ enum MachineState {
     RCURLY_STATE,              // "}"
     COMMA_STATE,               // ","
     SEMICOLON_STATE,           // ";"
+    DOT_STATE,                 // "."
 
     // Special States
     CANTMOVE_STATE,

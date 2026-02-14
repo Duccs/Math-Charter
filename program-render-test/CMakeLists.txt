@@ -8,11 +8,11 @@ target_link_libraries(render-test PRIVATE
     imgui
 )
 
-# Copy "shaders" to the build directory
+# Copy "shaders" to the binary directory
 add_custom_target(export_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
-        "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders"
     COMMENT "Copying shaders to binary directory..."
 )
 

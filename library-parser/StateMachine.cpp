@@ -18,7 +18,7 @@ StateMachineClass::StateMachineClass() {
     // Basic characters
     LegalMoves[START_STATE][WHITESPACE_CHAR] = START_STATE;
     LegalMoves[START_STATE][NEWLINE_CHAR] = START_STATE;
-    LegalMoves[START_STATE][LETTER_CHAR] = IDENTIFIER_STATE;
+    LegalMoves[START_STATE][LETTER_CHAR] = VARIABLE_STATE;
     LegalMoves[START_STATE][DIGIT_CHAR] = NUMBER_STATE;
 
     // Arithmetic characters
@@ -49,9 +49,14 @@ StateMachineClass::StateMachineClass() {
     LegalMoves[GREATER_STATE][EQUAL_CHAR] = GREATER_EQUAL_STATE;
 
     // Looping States
+    LegalMoves[VARIABLE_STATE][LETTER_CHAR] = IDENTIFIER_STATE;
     LegalMoves[IDENTIFIER_STATE][LETTER_CHAR] = IDENTIFIER_STATE;
-    LegalMoves[NUMBER_STATE][DIGIT_CHAR] = NUMBER_STATE;
-    LegalMoves[NUMBER_STATE][DOT_CHAR] = NUMBER_STATE;
+    // Number handling
+    LegalMoves[NUMBER_STATE][DIGIT_CHAR] = NUMBER_STATE;    // "123"
+    LegalMoves[NUMBER_STATE][DOT_CHAR] = NUMBER_DOT_STATE;  // "1."
+    LegalMoves[NUMBER_DOT_STATE][DIGIT_CHAR] = FLOAT_STATE; // "1.0", "1.2"
+    LegalMoves[DOT_STATE][DIGIT_CHAR] = FLOAT_STATE;        // ".5", ".1"
+    LegalMoves[FLOAT_STATE][DIGIT_CHAR] = FLOAT_STATE;      // "1.2123", "1.232321
 
     // EOF State
     LegalMoves[START_STATE][ENDFILE_CHAR] = ENDFILE_STATE;
@@ -62,8 +67,10 @@ StateMachineClass::StateMachineClass() {
         CorrespondingTokenTypes[i] = BAD_TOKEN;
     }
     
+    CorrespondingTokenTypes[VARIABLE_STATE] = VARIABLE_TOKEN;
     CorrespondingTokenTypes[IDENTIFIER_STATE] = IDENTIFIER_TOKEN;
     CorrespondingTokenTypes[NUMBER_STATE] = NUMBER_TOKEN;
+    CorrespondingTokenTypes[FLOAT_STATE] = NUMBER_TOKEN;
     
     // Arithmetic token types
     CorrespondingTokenTypes[PLUS_STATE] = PLUS_TOKEN;

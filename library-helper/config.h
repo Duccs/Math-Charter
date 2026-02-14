@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #define ShowMessages 1  // Set to 1 to enable debug messages, 0 to disable
+#define ShowWarnings 1  // Set to 1 to enable warnings, 0 to disable
 
 #include <iostream>
 
@@ -9,6 +10,12 @@
     #define MSG(X) std::cout << X << std::endl;
 #else
     #define MSG(X)
+#endif
+
+#if ShowWarnings
+    #define WARN(X) std::cerr << X << std::endl;
+#else
+    #define WARN(X)
 #endif
 
 // Screen dimensions
