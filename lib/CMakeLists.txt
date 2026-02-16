@@ -25,7 +25,7 @@ add_subdirectory(glad)
 FetchContent_Declare(
 	imgui
 	GIT_REPOSITORY https://github.com/ocornut/imgui.git
-	GIT_TAG v1.92.5
+	GIT_TAG docking
 )
 FetchContent_MakeAvailable(imgui)
 message(STATUS "ImGui is located at: '${imgui_SOURCE_DIR}'")

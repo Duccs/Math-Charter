@@ -29,7 +29,7 @@ add_executable(unit_tests
 # Link against GoogleTest libraries
 target_link_libraries(unit_tests
     GTest::gtest
-    parser-lib
+    lib-parser
     # Add other libraries as neccessary
     # curve-lib
     # helper-lib
@@ -39,9 +39,9 @@ target_link_libraries(unit_tests
 
 # Include directories for headers
 target_include_directories(unit_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/library-parser
-    ${CMAKE_SOURCE_DIR}/library-curve
-    ${CMAKE_SOURCE_DIR}/library-helper
-    ${CMAKE_SOURCE_DIR}/library-scene
-    ${CMAKE_SOURCE_DIR}/library-shader
+    ${CMAKE_SOURCE_DIR}/lib-parser
+    ${CMAKE_SOURCE_DIR}/lib-curve
+    ${CMAKE_SOURCE_DIR}/lib-assist
+    ${CMAKE_SOURCE_DIR}/lib-scene
+    ${CMAKE_SOURCE_DIR}/lib-shader
 )
