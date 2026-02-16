@@ -62,6 +62,10 @@ class GraphScene {
         GraphView& getView() { return view; }
         const GraphView& getView() const { return view; }
 
+        size_t getCurveCount() const { return curves.size(); }
+        Curve2D* getCurve(size_t index) { return (index < curves.size()) ? curves[index].get() : nullptr; }
+        const Curve2D* getCurve(size_t index) const { return (index < curves.size()) ? curves[index].get() : nullptr; }
+
 };
 
 #endif /* _GRAPHSCENE_H_ */

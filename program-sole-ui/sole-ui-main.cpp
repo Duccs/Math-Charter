@@ -1,10 +1,13 @@
-#include <Common-UI.h>
+#include <MenuBar-UI.h>
+#include <Preferences-UI.h>
+#include <Viewport-UI.h>
 #include <config.h>
 #include <assist.h>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 // Forward declarations
 // --------------------
@@ -52,9 +55,25 @@ int main() {
     // Color scheme
     ImGui::StyleColorsClassic();
 
-    // Font setup
+    // Font setup — load bundled fonts from the executable's directory
     float fontSize = 20.0f;
-    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/consola.ttf", fontSize);
+    
+    std::vector<FontDef> fonts = retrieveFonts();
+    int fontCount = fonts.size();
+
+    std::vector<ImFont*> fontArray(fontCount);
+    std::vector<const char*> fontNames(fontCount);
+    for (int i = 0; i < fontCount; i++) {
+        FontDef font = fonts[i];
+        fontArray[i] = io.Fonts->AddFontFromFileTTF(font.filename.c_str(), fontSize);
+        fontNames[i] = font.name.c_str();
+        if (!fontArray[i]) {
+            printf("[Font] Could not load %s — using ImGui default\n", font.filename.c_str());
+            fontArray[i] = io.Fonts->AddFontDefault();
+        }
+    }
+    int FONT_COUNT = fontCount;
+
     io.FontGlobalScale = fontSize / 13.0f;
 
     // Global UI scale
@@ -71,17 +90,40 @@ int main() {
     PreferencesState prefsState;
     LoadPreferences("preferences.cfg", &prefsState);
 
+    // Populate font names into preferences
+    for (int i = 0; i < FONT_COUNT; i++) {
+        prefsState.fontNames[i] = fontNames[i];
+    }
+    prefsState.fontCount = FONT_COUNT;
+    // Clamp saved fontCombo to valid range
+    if (prefsState.fontCombo < 0 || prefsState.fontCombo >= FONT_COUNT)
+        prefsState.fontCombo = 0;
+
     // Menubar state
     MenuBarState menuBarState;
     menuBarState.showLog = true;
     menuBarState.showPreferences = true;
+    menuBarState.showViewport = true;
+    menuBarState.showGraphControls = true;
 
     // Log buffer
     std::vector<std::string> logLines;
 
-    // -----------------------------------------------------------------------
-    // 5. Render loop
-    // -----------------------------------------------------------------------
+    // Graph viewport
+    // --------------
+    GraphViewport viewport({-5.0f, 5.0f, -5.0f, 5.0f});
+    if (!viewport.init()) {
+        logLines.push_back("[Error] Failed to initialize graph viewport shaders");
+    } else {
+        viewport.getScene().addCurve("log(x)", 200, 4.0f, {0.0f, 1.0f, 0.0f});
+        viewport.getScene().addCurve("x^3",    200, 4.0f, {1.0f, 0.0f, 0.0f});
+        viewport.getScene().addCurve("sin(x)", 200, 4.0f, {0.0f, 0.0f, 1.0f});
+        viewport.getScene().addCurve("cos(x)", 200, 4.0f, {1.0f, 0.7f, 0.0f});
+        logLines.push_back("[Graph] Viewport initialized with default curves");
+    }
+
+    // Render loop
+    // -----------
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -89,6 +131,13 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        // Apply selected font
+        int fontIdx = (prefsState.fontCombo >= 0 && prefsState.fontCombo < FONT_COUNT)
+                      ? prefsState.fontCombo : 0;
+        if (fontIdx >= 0 && fontIdx < (int)fontArray.size() && fontArray[fontIdx] != nullptr) {
+            ImGui::PushFont(fontArray[fontIdx]);
+        }
 
         // Dockspace
         // ---------
@@ -105,8 +154,16 @@ int main() {
 
         // Apply preferences to style
         // --------------------------
-        ApplyPreferencesStyle(&prefsState);
+        ApplyPreferences(&prefsState);
         
+        // Graph viewport window
+        // ---------------------
+        GraphViewportWindow(&menuBarState.showViewport, viewport);
+
+        // Graph control panel
+        // -------------------
+        GraphControlPanel(&menuBarState.showGraphControls, viewport, logLines);
+
         // Log window
         // ----------
         LogWindow(&menuBarState.showLog, logLines);
@@ -115,6 +172,11 @@ int main() {
         // ---------------------------------------
         if (menuBarState.showDemoWindow) ImGui::ShowDemoWindow(&menuBarState.showDemoWindow);
         if (menuBarState.showMetrics)    ImGui::ShowMetricsWindow(&menuBarState.showMetrics);
+
+        // Pop font
+        if (fontIdx >= 0 && fontIdx < (int)fontArray.size() && fontArray[fontIdx] != nullptr) {
+            ImGui::PopFont();
+        }
 
         // Render
         // ------

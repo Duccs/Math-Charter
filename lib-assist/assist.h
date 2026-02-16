@@ -19,11 +19,17 @@ struct RenderColor {
     float blue = 0.0f;
 };
 
+struct FontDef { std::string name; std::string filename; };
+
 double red(int r);
 double green(int g);
 double blue(int b);
 
 std::filesystem::path getPath();
+
+std::string extractFontName(const std::string& filename);
+
+std::vector<FontDef> retrieveFonts(std::string fontPath = "fonts");
 
 float mapToScreen(float value, float min, float max);
 

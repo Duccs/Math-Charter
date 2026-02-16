@@ -2,6 +2,8 @@
 add_library(lib-scene STATIC 
     Graphscene.cpp 
     Graphscene.h
+    GraphViewport.cpp
+    GraphViewport.h
 )
 
 # Link the library

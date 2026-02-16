@@ -3,6 +3,9 @@ build/
 bin/
 .vscode/
 
+# Extra files
+program-rigid-render/render-test-copy.cpp
+
 # Debug imgs
 *.PNG
 *.pdf
