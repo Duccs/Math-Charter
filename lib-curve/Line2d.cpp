@@ -46,7 +46,7 @@ void Line2D::upload() {
 
 // Render the line/curve
 void Line2D::render() {
-    if (points.empty()) return;
+    if (points.empty() || !visible) return;
     
     glBindVertexArray(VAO);
     glLineWidth(lineWidth);
@@ -92,4 +92,20 @@ float Line2D::getLineWidth() const {
 void Line2D::setLineWidth(float width) {
     if (width <= 0.0f) throw std::invalid_argument("Line width must be positive.");
     lineWidth = width;
+}
+
+LineType Line2D::getLineType() const {
+    return lineType;
+}
+
+void Line2D::setLineType(LineType type) {
+    lineType = type;
+}
+
+bool Line2D::isVisible() const {
+    return visible;
+}
+
+void Line2D::setVisible(bool v) {
+    visible = v;
 }

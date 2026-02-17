@@ -10,6 +10,14 @@
 #include <string>
 #include <fstream>
 
+struct DockLayout {
+    ImGuiID right_upper;
+    ImGuiID right_lower;
+};
+
+// Only sets up lower right and upper right docks.
+DockLayout SetupDockingLayout(ImGuiID dockspace_id);
+
 void LogWindow(bool* show, std::vector<std::string>& logLines);
 
 #endif /* _COMMON_UI_H_ */

@@ -67,7 +67,7 @@ void GraphViewportWindow(bool* show, GraphViewport& viewport) {
 
 
 void GraphControlPanel(bool* show, GraphViewport& viewport,
-                       std::vector<std::string>& logLines) {
+                       std::vector<std::string>& logLines, PreferencesState* state) {
     if (!show || !*show) return;
 
     ImGui::Begin("Graph Controls", show);
@@ -113,34 +113,95 @@ void GraphControlPanel(bool* show, GraphViewport& viewport,
         ImGui::PushID(static_cast<int>(i));
 
         char label[128];
-        snprintf(label, sizeof(label), "Curve %zu: %s",
-                 i + 1, curve->getEquation().c_str());
+        snprintf(label, sizeof(label), "%s", curve->getEquation().c_str());
 
         if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-            // Color picker
-            RenderColor col = curve->getColor();
-            float c[3] = {col.red, col.green, col.blue};
-            if (ImGui::ColorEdit3("Color", c)) {
-                curve->setColor(c[0], c[1], c[2]);
-            }
+            if (state->showAdvancedSettings) {
 
-            // Line width
-            float lw = curve->getLineWidth();
-            if (ImGui::SliderFloat("Line Width", &lw, 0.5f, 10.0f)) {
-                curve->setLineWidth(lw);
-            }
+                // Color picker
+                RenderColor col = curve->getColor();
+                float c[3] = {col.red, col.green, col.blue};
+                if (ImGui::ColorEdit3("Color", c)) {
+                    curve->setColor(c[0], c[1], c[2]);
+                }
 
-            // Point count
-            int np = curve->getNumPoints();
-            if (ImGui::SliderInt("Points", &np, 10, 1000)) {
-                curve->setNumPoints(np);
-                curve->update(scene.getView());
-            }
+                // Line width
+                float lw = curve->getLineWidth();
+                if (ImGui::SliderFloat("Line Width", &lw, 0.5f, 10.0f)) {
+                    curve->setLineWidth(lw);
+                }
 
-            // Remove button
-            if (ImGui::Button("Remove")) {
-                removeIndex = static_cast<int>(i);
+                // Point count
+                int np = curve->getNumPoints();
+                if (ImGui::SliderInt("Points", &np, 10, 1000)) {
+                    curve->setNumPoints(np);
+                    curve->update(scene.getView());
+                }
+
+                // Red color for remove button
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));           // Normal
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));   // Hovered
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
+                // Remove buttons
+                if (ImGui::Button("Remove")) {
+                    removeIndex = static_cast<int>(i);
+                }
+                ImGui::PopStyleColor(3); // Pop all three pushed style colors
+            } else {
+
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+                // Predefined color palette
+                RenderColor curCol = curve->getColor();
+                for (int ci = 0; ci < 6; ci++) {
+                    ImGui::PushID(ci);
+                    const ImVec4& pc = curvePalette[ci];
+                    bool selected = (curCol.red == pc.x && curCol.green == pc.y && curCol.blue == pc.z);
+                    if (selected) {
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+                        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 1, 1, 1));
+                    }
+                    if (ImGui::ColorButton("##swatch", pc, ImGuiColorEditFlags_NoTooltip, ImVec2(40, 40))) {
+                        curve->setColor(pc.x, pc.y, pc.z);
+                    }
+                    if (selected) {
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleVar();
+                    }
+                    if (ci < 7) ImGui::SameLine();
+                    ImGui::PopID();
+                }
+                
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+                // Line type selector
+                const char* typeLabels[] = { "Straight", "Dashed", "Dotted" };
+                int currentType = static_cast<int>(curve->getLineType());
+                for (int t = 0; t < 3; t++) {
+                    if (t > 0) ImGui::SameLine();
+                    bool active = (currentType == t);
+                    if (active) {
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+                    }
+                    if (ImGui::Button(typeLabels[t])) {
+                        curve->setLineType(static_cast<LineType>(t));
+                    }
+                    if (active) {
+                        ImGui::PopStyleColor();
+                    }
+                }
+
+                ImGui::SameLine();
+
+                // Visibility toggle
+                bool vis = curve->isVisible();
+                if (ImGui::Checkbox("Visible", &vis)) {
+                    curve->setVisible(vis);
+                }
+
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
             }
+        } else {
         }
 
         ImGui::PopID();

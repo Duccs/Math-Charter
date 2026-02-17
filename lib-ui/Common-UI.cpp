@@ -1,11 +1,29 @@
 #include "Common-UI.h"
 #include "Assist-UI.h"
+#include <imgui_internal.h>
+
+DockLayout SetupDockingLayout(ImGuiID dockspace_id) {
+    DockLayout layout;
+    
+    // Clear any existing layout
+    ImGui::DockBuilderRemoveNode(dockspace_id);
+    ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+    
+    // Split off right side (25% width)
+    ImGuiID dock_id_right;
+    ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.25f, &dock_id_right, nullptr);
+    
+    // Split the right side into upper (50%) and lower (50%) sections
+    ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.50f, &layout.right_lower, &layout.right_upper);
+    
+    ImGui::DockBuilderFinish(dockspace_id);
+    
+    return layout;
+}
 
 void LogWindow(bool* show, std::vector<std::string>& logLines) {
     if (!show || !*show) return;
-
-    // ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_FirstUseEver);
-    // (Uncomment to dock this window to the bottom automatically)
 
     ImGui::Begin("Log", show);
 

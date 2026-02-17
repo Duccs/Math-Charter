@@ -1,8 +1,10 @@
 #include <MenuBar-UI.h>
 #include <Preferences-UI.h>
 #include <Viewport-UI.h>
+#include <Common-UI.h>
 #include <config.h>
 #include <assist.h>
+#include <imgui_internal.h>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -51,6 +53,7 @@ int main() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Keyboard nav
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Docking support
+    io.ConfigWindowsMoveFromTitleBarOnly = true;          // Restrict window moving to title bar
 
     // Color scheme
     ImGui::StyleColorsClassic();
@@ -62,11 +65,11 @@ int main() {
     int fontCount = fonts.size();
 
     std::vector<ImFont*> fontArray(fontCount);
-    std::vector<const char*> fontNames(fontCount);
+    std::vector<std::string> fontNames(fontCount);
     for (int i = 0; i < fontCount; i++) {
         FontDef font = fonts[i];
         fontArray[i] = io.Fonts->AddFontFromFileTTF(font.filename.c_str(), fontSize);
-        fontNames[i] = font.name.c_str();
+        fontNames[i] = font.name;
         if (!fontArray[i]) {
             printf("[Font] Could not load %s — using ImGui default\n", font.filename.c_str());
             fontArray[i] = io.Fonts->AddFontDefault();
@@ -91,20 +94,25 @@ int main() {
     LoadPreferences("preferences.cfg", &prefsState);
 
     // Populate font names into preferences
-    for (int i = 0; i < FONT_COUNT; i++) {
-        prefsState.fontNames[i] = fontNames[i];
+    int safeFontCount = (FONT_COUNT > PreferencesState::MAX_FONTS) ? PreferencesState::MAX_FONTS : FONT_COUNT;
+    for (int i = 0; i < safeFontCount; i++) {
+        prefsState.fontNames[i] = fontNames[i].c_str();
     }
-    prefsState.fontCount = FONT_COUNT;
+    if (FONT_COUNT > PreferencesState::MAX_FONTS) {
+        printf("[Warning] Loaded %d fonts, but only %d can be displayed in preferences (MAX_FONTS limit)\n", 
+               FONT_COUNT, PreferencesState::MAX_FONTS);
+    }
+    prefsState.fontCount = safeFontCount;
     // Clamp saved fontCombo to valid range
-    if (prefsState.fontCombo < 0 || prefsState.fontCombo >= FONT_COUNT)
+    if (prefsState.fontCombo < 0 || prefsState.fontCombo >= safeFontCount)
         prefsState.fontCombo = 0;
 
     // Menubar state
     MenuBarState menuBarState;
     menuBarState.showLog = true;
     menuBarState.showPreferences = true;
-    menuBarState.showViewport = true;
-    menuBarState.showGraphControls = true;
+    menuBarState.showViewport = false;
+    menuBarState.showGraphControls = false;
 
     // Log buffer
     std::vector<std::string> logLines;
@@ -115,7 +123,7 @@ int main() {
     if (!viewport.init()) {
         logLines.push_back("[Error] Failed to initialize graph viewport shaders");
     } else {
-        viewport.getScene().addCurve("log(x)", 200, 4.0f, {0.0f, 1.0f, 0.0f});
+        viewport.getScene().addCurve("e^(1/x)", 200, 4.0f, {0.0f, 1.0f, 0.0f});
         viewport.getScene().addCurve("x^3",    200, 4.0f, {1.0f, 0.0f, 0.0f});
         viewport.getScene().addCurve("sin(x)", 200, 4.0f, {0.0f, 0.0f, 1.0f});
         viewport.getScene().addCurve("cos(x)", 200, 4.0f, {1.0f, 0.7f, 0.0f});
@@ -142,7 +150,22 @@ int main() {
         // Dockspace
         // ---------
         ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-        ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+
+        // Setup docking layout on first run
+        static bool first_time = true;
+        if (first_time) {
+            first_time = false;
+            // Only set up default layout if config file doesn't exist
+            std::filesystem::path configPath("imgui.ini");
+            if (!std::filesystem::exists(configPath)) {
+                DockLayout layout = SetupDockingLayout(dockspace_id);
+                
+                ImGui::DockBuilderDockWindow("Preferences", layout.right_upper);
+                ImGui::DockBuilderDockWindow("Log", layout.right_lower);
+            }
+        }
+
+        ImGui::DockSpaceOverViewport(dockspace_id, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
 
         // Menu bar
         // --------
@@ -162,7 +185,7 @@ int main() {
 
         // Graph control panel
         // -------------------
-        GraphControlPanel(&menuBarState.showGraphControls, viewport, logLines);
+        GraphControlPanel(&menuBarState.showGraphControls, viewport, logLines, &prefsState);
 
         // Log window
         // ----------

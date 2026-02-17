@@ -317,6 +317,7 @@ void GraphScene::render(Shader& shader, float aspectRatio) {
         
     // Render all curves
     for (auto& curve : curves) {
+        if (!curve->isVisible()) continue;
         RenderColor color = curve->getColor();
         shader.setVec3("color", color.red, color.green, color.blue);
         curve->render();
