@@ -123,10 +123,10 @@ int main() {
     if (!viewport.init()) {
         logLines.push_back("[Error] Failed to initialize graph viewport shaders");
     } else {
-        viewport.getScene().addCurve("e^(1/x)", 200, 4.0f, {0.0f, 1.0f, 0.0f});
-        viewport.getScene().addCurve("x^3",    200, 4.0f, {1.0f, 0.0f, 0.0f});
-        viewport.getScene().addCurve("sin(x)", 200, 4.0f, {0.0f, 0.0f, 1.0f});
-        viewport.getScene().addCurve("cos(x)", 200, 4.0f, {1.0f, 0.7f, 0.0f});
+        viewport.getScene().addCurve("e^(1/x)", 4.0f, {0.0f, 1.0f, 0.0f});
+        viewport.getScene().addCurve("x^3",    4.0f, {1.0f, 0.0f, 0.0f});
+        viewport.getScene().addCurve("sin(x)", 4.0f, {0.0f, 0.0f, 1.0f});
+        viewport.getScene().addCurve("cos(x)", 4.0f, {1.0f, 0.7f, 0.0f});
         logLines.push_back("[Graph] Viewport initialized with default curves");
     }
 

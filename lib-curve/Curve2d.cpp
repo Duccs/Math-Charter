@@ -1,8 +1,8 @@
 #include "Curve2d.h"
 
 // Constructor
-Curve2D::Curve2D(const char* eq, int points, float lineWidth, RenderColor color) 
-    : Line2D(points, lineWidth, color), equation(eq) {
+Curve2D::Curve2D(const char* eq, float lineWidth, RenderColor color) 
+    : Line2D(lineWidth, color), equation(eq) {
     // Set up in parent constructor
 }
 
@@ -14,7 +14,7 @@ Curve2D::~Curve2D() {
 // TODO: Plug in function from helper if unused by other classes
 // Generate vertex data in relation to GraphView
 void Curve2D::generate(GraphView view) {
-    points = generateGraphPoints(equation.c_str(), numPoints, view);
+    strips = generateGraphPoints(equation.c_str(), view);
 }
 
 // Setters and Getters

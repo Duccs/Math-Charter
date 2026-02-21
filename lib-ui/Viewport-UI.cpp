@@ -131,13 +131,6 @@ void GraphControlPanel(bool* show, GraphViewport& viewport,
                     curve->setLineWidth(lw);
                 }
 
-                // Point count
-                int np = curve->getNumPoints();
-                if (ImGui::SliderInt("Points", &np, 10, 1000)) {
-                    curve->setNumPoints(np);
-                    curve->update(scene.getView());
-                }
-
                 // Red color for remove button
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));           // Normal
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));   // Hovered
@@ -223,16 +216,14 @@ void GraphControlPanel(bool* show, GraphViewport& viewport,
     static char  newEquation[256] = "";
     static float newColor[3]     = {1.0f, 0.0f, 0.0f};
     static float newLineWidth    = 4.0f;
-    static int   newPoints       = 200;
 
     ImGui::InputText("Equation", newEquation, sizeof(newEquation));
     ImGui::ColorEdit3("Color##new", newColor);
     ImGui::SliderFloat("Line Width##new", &newLineWidth, 0.5f, 10.0f);
-    ImGui::SliderInt("Points##new", &newPoints, 10, 1000);
 
     if (ImGui::Button("Add Curve") && strlen(newEquation) > 0) {
         RenderColor color = {newColor[0], newColor[1], newColor[2]};
-        scene.addCurve(newEquation, newPoints, newLineWidth, color);
+        scene.addCurve(newEquation, newLineWidth, color);
         logLines.push_back(std::string("[Graph] Added curve: ") + newEquation);
         newEquation[0] = '\0';
     }

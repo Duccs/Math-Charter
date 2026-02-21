@@ -13,16 +13,17 @@ enum class LineType {
 class Line2D {
 
     protected:
-        std::vector<float> points;
+        std::vector<std::vector<float>> strips;  // sub-strips of valid vertices
+        std::vector<float> vboData;               // flattened VBO data
+        std::vector<std::pair<int,int>> drawRanges; // {startVertex, count} per strip
         unsigned int VAO, VBO;
-        int numPoints;
         float lineWidth;
         RenderColor color;
         LineType lineType = LineType::Straight;
         bool visible = true;
 
     public:
-        Line2D(int points, float lineWidth = 1.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
+        Line2D(float lineWidth = 1.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
         virtual ~Line2D();
 
         virtual void generate(GraphView view);  // Generate vertex data
@@ -30,8 +31,6 @@ class Line2D {
         void render();                          // Draw the line/curve
         void update(GraphView view);            // Regenerate and reupload
 
-        int getNumPoints() const;
-        void setNumPoints(int points);
         void setColor(float r, float g, float b);
         RenderColor getColor() const;
         float getLineWidth() const;

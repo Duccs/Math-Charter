@@ -1,4 +1,5 @@
 #include "Expression.h"
+#include <limits>
 
 // Mathematical constants
 #ifndef M_PI
@@ -87,7 +88,14 @@ float Expression::evaluate(float x) const {
             if (evalStack.size() < 2) throw std::runtime_error("Stack underflow");
             float b = evalStack.top(); evalStack.pop();
             float a = evalStack.top(); evalStack.pop();
-            evalStack.push(b != 0.0f ? a / b : 0.0f);
+            if (b != 0.0f) {
+                evalStack.push(a / b);
+            } else {
+                // Signal discontinuity: +Inf, -Inf, or NaN
+                if (a > 0.0f)      evalStack.push(std::numeric_limits<float>::infinity());
+                else if (a < 0.0f) evalStack.push(-std::numeric_limits<float>::infinity());
+                else               evalStack.push(std::numeric_limits<float>::quiet_NaN());
+            }
         }
         else if (type == EXP_TOKEN) {
             // Using ^ as exponentiation operator

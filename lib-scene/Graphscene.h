@@ -45,7 +45,7 @@ class GraphScene {
         ~GraphScene();
 
         // Add or remove curves
-        Curve2D* addCurve(const char* equation, int numPoints, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
+        Curve2D* addCurve(const char* equation, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
         void removeCurve(Curve2D* curve);
 
         // View manipulation

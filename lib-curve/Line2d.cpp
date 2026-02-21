@@ -1,8 +1,8 @@
 #include "Line2d.h"
 
 // Constructor
-Line2D::Line2D(int points, float lineWidth, RenderColor color) 
-    : numPoints(points), VAO(0), VBO(0), lineWidth(lineWidth), color(color) {
+Line2D::Line2D(float lineWidth, RenderColor color) 
+    : VAO(0), VBO(0), lineWidth(lineWidth), color(color) {
     
     // Configure VAO and VBO
     glGenVertexArrays(1, &VAO);
@@ -31,26 +31,41 @@ Line2D::~Line2D() {
 
 // Generate vertex data in relation to GraphView
 void Line2D::generate(GraphView view) {
-    points = generateGraphPoints("x", numPoints, view); // Default to y=x line
+    strips = generateGraphPoints("x", view); // Default to y=x line
 }
 
-// Upload vertex data
+// Upload vertex data — flatten all sub-strips into a single VBO
+// and record draw ranges for each strip.
 void Line2D::upload() {
-    if (points.empty()) return;
-    
+    vboData.clear();
+    drawRanges.clear();
+
+    int vertexOffset = 0;
+    for (const auto& strip : strips) {
+        int vertexCount = static_cast<int>(strip.size()) / 3;
+        if (vertexCount < 2) continue;  // need at least 2 points for a line
+        drawRanges.push_back({vertexOffset, vertexCount});
+        vboData.insert(vboData.end(), strip.begin(), strip.end());
+        vertexOffset += vertexCount;
+    }
+
+    if (vboData.empty()) return;
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), 
-                 points.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vboData.size() * sizeof(float),
+                 vboData.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-// Render the line/curve
+// Render each sub-strip as an independent GL_LINE_STRIP
 void Line2D::render() {
-    if (points.empty() || !visible) return;
-    
+    if (drawRanges.empty() || !visible) return;
+
     glBindVertexArray(VAO);
     glLineWidth(lineWidth);
-    glDrawArrays(GL_LINE_STRIP, 0, points.size() / 3);
+    for (const auto& [start, count] : drawRanges) {
+        glDrawArrays(GL_LINE_STRIP, start, count);
+    }
     glBindVertexArray(0);
 }
 
@@ -63,15 +78,6 @@ void Line2D::update(GraphView view) {
 
 // Setter and Getters
 // ------------------
-int Line2D::getNumPoints() const {
-    return numPoints;
-}
-
-void Line2D::setNumPoints(int points) {
-    if (points < 0) throw std::invalid_argument("Number of points cannot be negative.");
-    numPoints = points;
-}
-
 void Line2D::setColor(float r, float g, float b) {
     if (r < 0.0f || r > 1.0f) r = 0.0f;
     if (g < 0.0f || g > 1.0f) g = 0.0f;

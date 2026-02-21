@@ -69,11 +69,11 @@ int main() {
     // ---------------------------
     GraphScene scene(view);
 
-    Curve2D* curve = scene.addCurve("log(x)", 200, 4.0f, {0.0f, 1.0f, 0.0f}); // Red parabola
-    curve = scene.addCurve("x^3", 200, 4.0f, {1.0f, 0.0f, 0.0f}); // Blue inverted parabola
-    curve = scene.addCurve("sin(x)", 200, 4.0f, {0.0f, 0.0f, 1.0f}); // Green sine wave
-    curve = scene.addCurve("cos(x)", 200, 4.0f, {1.0f, 0.7f, 0.0f}); // Yellow cosine wave
-    // Curve2D* curve5 = scene.addCurve("tan(x)", 200);
+    Curve2D* curve = scene.addCurve("log(x)", 4.0f, {0.0f, 1.0f, 0.0f}); // Red parabola
+    curve = scene.addCurve("x^3", 4.0f, {1.0f, 0.0f, 0.0f}); // Blue inverted parabola
+    curve = scene.addCurve("sin(x)", 4.0f, {0.0f, 0.0f, 1.0f}); // Green sine wave
+    curve = scene.addCurve("cos(x)", 4.0f, {1.0f, 0.7f, 0.0f}); // Yellow cosine wave
+    // Curve2D* curve5 = scene.addCurve("tan(x)");
     // curve5->setColor(1.0f, 0.0f, 1.0f); // Magenta tan(x) - tests adaptive sampling!
 
     // Init shader

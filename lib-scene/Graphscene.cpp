@@ -202,8 +202,8 @@ std::vector<float> GraphScene::generateMinorLines(GraphView view, float spacing)
 }
 
 // Add a new curve to the scene
-Curve2D* GraphScene::addCurve(const char* equation, int numPoints, float lineWidth, RenderColor color) {
-    curves.push_back(std::make_unique<Curve2D>(equation, numPoints, lineWidth, color));
+Curve2D* GraphScene::addCurve(const char* equation, float lineWidth, RenderColor color) {
+    curves.push_back(std::make_unique<Curve2D>(equation, lineWidth, color));
     Curve2D* newCurve = curves.back().get();
     
     newCurve->generate(view);

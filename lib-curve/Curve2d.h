@@ -11,7 +11,7 @@ class Curve2D : public Line2D
         std::string equation;
 
     public:
-        Curve2D(const char* equation, int points, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
+        Curve2D(const char* equation, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
         ~Curve2D() override;
 
         void generate(GraphView view) override;  // Generate vertex data

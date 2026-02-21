@@ -6,6 +6,6 @@
 #include <vector>
 #include <cmath>
 
-std::vector<float> generateGraphPoints(const char* equation, int numPoints, GraphView view);
+std::vector<std::vector<float>> generateGraphPoints(const char* equation, GraphView view);
 
 #endif /* _VERTEX_GENERATOR_H_ */

@@ -51,8 +51,8 @@ void PreferencesWindow(bool* show, PreferencesState* state) {
 
         ImGui::NewLine();
         ImGui::Text("Presets:"); ImGui::SameLine();
-        const char* presets[] = {"Coral Blue", "Coral Blue (Light)", "Yogurt Purple", "Mandarin Spike"};
-        if (ImGui::Combo("##ColorPresets", &state->colorPresetCombo, presets, 4)) {
+        const char* presets[] = {"Coral Blue", "Coral Blue (Light)", "Yogurt Purple", "Mandarin Spike", "Simple Gray", "Seaweed Field"};
+        if (ImGui::Combo("##ColorPresets", &state->colorPresetCombo, presets, 6)) {
             // Apply the selected preset
             if (state->colorPresetCombo == 0) {  // Coral Blue
                 state->primaryColor[0] = red(248); state->primaryColor[1] = green(112); state->primaryColor[2] = blue(96);
@@ -81,6 +81,20 @@ void PreferencesWindow(bool* show, PreferencesState* state) {
                 state->bgColor[0]      = red(56);  state->bgColor[1]      = green(56);  state->bgColor[2]      = blue(56);
                 state->borderColor[0]  = red(90);  state->borderColor[1]  = green(90);  state->borderColor[2]  = blue(90);
                 state->hoverColor[0]   = red(255); state->hoverColor[1]   = green(160); state->hoverColor[2]   = blue(100);
+                state->autoTextColor = true;
+            } else if (state->colorPresetCombo == 4) {  // Simple Gray
+                state->primaryColor[0] = red(154); state->primaryColor[1] = green(140); state->primaryColor[2] = blue(152);
+                state->accentColor[0]  = red(74);  state->accentColor[1]  = green(78);  state->accentColor[2]  = blue(105);
+                state->bgColor[0]      = red(242); state->bgColor[1]      = green(233); state->bgColor[2]      = blue(228);
+                state->borderColor[0]  = red(201); state->borderColor[1]  = green(173); state->borderColor[2]  = blue(167);
+                state->hoverColor[0]   = red(34); state->hoverColor[1]   = green(34); state->hoverColor[2]   = blue(58);
+                state->autoTextColor = true;
+            } else if (state->colorPresetCombo == 5) {  // Seaweed Field
+                state->primaryColor[0] = red(132);  state->primaryColor[1] = green(169); state->primaryColor[2] = blue(140);
+                state->accentColor[0]  = red(63);  state->accentColor[1]  = green(134);  state->accentColor[2]  = blue(152);
+                state->bgColor[0]      = red(240);  state->bgColor[1]      = green(240);  state->bgColor[2]      = blue(240);
+                state->borderColor[0]  = red(45);  state->borderColor[1]  = green(75);  state->borderColor[2]  = blue(119);
+                state->hoverColor[0]   = red(41);  state->hoverColor[1]   = green(55);  state->hoverColor[2]   = blue(44);
                 state->autoTextColor = true;
             }
             ApplyPreferencesStyle(state);
