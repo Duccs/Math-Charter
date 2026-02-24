@@ -1,0 +1,108 @@
+name: Build Cross-Platform Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: Sole-UI
+            artifact_path: bin/Sole-UI/
+            target: Sole-UI
+          - os: macos-latest
+            artifact_name: Sole-UI
+            artifact_path: bin/Sole-UI/
+            target: Sole-UI
+          - os: windows-latest
+            artifact_name: Sole-UI.exe
+            artifact_path: bin/Sole-UI/
+            target: Sole-UI
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake libglfw3-dev libglew-dev
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake glfw glew
+
+      - name: Set up CMake (Windows)
+        if: runner.os == 'Windows'
+        uses: jwlawson/actions-setup-cmake@v1
+        with:
+          cmake-version: '3.24.x'
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release --target ${{ matrix.target }}
+
+      - name: Rename executable
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            mv bin/Sole-UI/Sole-UI.exe bin/Sole-UI/Math-Charter-win.exe
+          else
+            mv bin/Sole-UI/Sole-UI bin/Sole-UI/Math-Charter-${{ runner.os }}
+          fi
+        shell: bash
+
+      - name: Move to bin directory
+        run: |
+          mv bin/Sole-UI/* bin/
+          rm -rf bin/Sole-UI/
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Math-Charter-${{ matrix.os }}
+          path: bin/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Math-Charter-ubuntu-latest/**
+            Math-Charter-macos-latest/**
+            Math-Charter-windows-latest/**
+          body: |
+            ## Release Notes
+            
+            **Build Information:**
+            - Built from: ${{ github.ref }}
+            - Commit: ${{ github.sha }}
+            - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                        
+            Extract the appropriate binary for your platform and run it.
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

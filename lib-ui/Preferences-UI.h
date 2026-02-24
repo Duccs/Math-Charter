@@ -6,15 +6,15 @@
 
 struct PreferencesState {
     // 6-color palette
-    float primaryColor[3] = {0.4f, 0.7f, 1.0f};    // Buttons, title bars, headers, tabs
-    float accentColor[3]  = {1.0f, 0.3f, 0.3f};     // Active/pressed states, checkmarks
-    float bgColor[3]      = {0.12f, 0.12f, 0.14f};  // Window backgrounds, panels
-    float textColor[3]    = {0.95f, 0.95f, 0.95f};   // Text (manual or auto)
-    float borderColor[3]  = {0.30f, 0.30f, 0.35f};   // Borders, separators, table lines
-    float hoverColor[3]   = {0.55f, 0.80f, 1.0f};    // Hovered buttons, frames, headers
-    bool  autoTextColor   = true;                     // Auto-compute text from bg luminance
+    float primaryColor[3] = {red(154), green(140), blue(152)};    // Buttons, title bars, headers, tabs
+    float accentColor[3]  = {red(74), green(78), blue(105)};     // Active/pressed states, checkmarks
+    float bgColor[3]      = {red(242), green(233), blue(228)};  // Window backgrounds, panels
+    float textColor[3]    = {0.95f, 0.95f, 0.95f};              // Text (manual or auto)
+    float borderColor[3]  = {red(201), green(173), blue(167)};   // Borders, separators, table lines
+    float hoverColor[3]   = {red(34), green(34), blue(58)};    // Hovered buttons, frames, headers
+    bool  autoTextColor   = true;                               // Auto-compute text from bg luminance
     int colorPresetCombo = 0;
-    int fontCombo = 0;
+    int fontCombo = 2;
     int debugRadio = 0;
     int warnRadio = 0;
     int fontScaleSlider = 50;

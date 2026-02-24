@@ -46,6 +46,10 @@ int main() {
         return -1;
     }
 
+    // Enable MSAA
+    // -----------
+	glEnable(GL_MULTISAMPLE);
+
     // Initialize Dear ImGui
     // ---------------------
     IMGUI_CHECKVERSION();
