@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
@@ -33,7 +34,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake libglfw3-dev libglew-dev
+          sudo apt-get install -y build-essential cmake libglfw3-dev libglew-dev libxkbcommon-dev libxkbcommon-x11-dev
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
