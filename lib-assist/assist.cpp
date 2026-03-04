@@ -13,9 +13,9 @@
 
 // Color conversion for visual purposes and ease
 // You are absolutely correct! They all do the same thing and are redundant asl.
-double red(int r) { return (double)r / 255.0; }
-double green(int g) { return (double)g / 255.0; }
-double blue(int b) { return (double)b / 255.0; }
+float red(int r) { return (float)r / 255.0; }
+float green(int g) { return (float)g / 255.0; }
+float blue(int b) { return (float)b / 255.0; }
 
 // Get the exe directory path (cross-platform)
 std::filesystem::path getPath() {

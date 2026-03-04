@@ -1,5 +1,6 @@
 
 #include <Expression.h>
+#include <SymbolTable.h>
 #include <config.h>
 #include <iostream>
 
@@ -25,7 +26,9 @@ int main() {
             return 1;
         }
 
-        MSG("Postfix representation: " << expr.toPostfixString());
+        // Create symbol table with variable "x"
+        SymbolTable symbols;
+        symbols.AddEntry("x");
 
         while (true)
         {
@@ -39,7 +42,8 @@ int main() {
 
             try {
                 float x = std::stof(input);
-                float result = expr.evaluate(x);
+                symbols.SetValue("x", x);
+                float result = expr.evaluate(symbols);
                 MSG("x = " << x << ", f(x) = " << result);
             } catch (const std::invalid_argument& e) {
                 MSG("Invalid input. Please enter a number or 'quit'.");

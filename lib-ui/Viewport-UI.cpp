@@ -106,6 +106,29 @@ void GraphControlPanel(bool* show, GraphViewport& viewport,
     size_t curveCount = scene.getCurveCount();
     int removeIndex = -1; // deferred removal
 
+    // Add Curve
+    // ---------
+    ImGui::SeparatorText("Add Curve");
+
+    static char  newEquation[256] = "";
+    static float newColor[3]     = {1.0f, 0.0f, 0.0f};
+    static float newLineWidth    = 4.0f;
+
+    ImGui::InputText("Equation", newEquation, sizeof(newEquation));
+    ImGui::ColorEdit3("Color##new", newColor);
+    ImGui::SliderFloat("Line Width##new", &newLineWidth, 0.5f, 10.0f);
+
+    if (ImGui::Button("Add Curve") && strlen(newEquation) > 0) {
+        RenderColor color = {newColor[0], newColor[1], newColor[2]};
+        scene.addCurve(newEquation, newLineWidth, color);
+        logLines.push_back(std::string("[Graph] Added curve: ") + newEquation);
+        newEquation[0] = '\0';
+    }
+
+    ImGui::NewLine();
+
+    // Display Curves
+    // --------------
     for (size_t i = 0; i < curveCount; i++) {
         Curve2D* curve = scene.getCurve(i);
         if (!curve) continue;
@@ -207,25 +230,6 @@ void GraphControlPanel(bool* show, GraphViewport& viewport,
             logLines.push_back("[Graph] Removed curve: " + curve->getEquation());
             scene.removeCurve(curve);
         }
-    }
-
-    // Add Curve
-    // ---------
-    ImGui::SeparatorText("Add Curve");
-
-    static char  newEquation[256] = "";
-    static float newColor[3]     = {1.0f, 0.0f, 0.0f};
-    static float newLineWidth    = 4.0f;
-
-    ImGui::InputText("Equation", newEquation, sizeof(newEquation));
-    ImGui::ColorEdit3("Color##new", newColor);
-    ImGui::SliderFloat("Line Width##new", &newLineWidth, 0.5f, 10.0f);
-
-    if (ImGui::Button("Add Curve") && strlen(newEquation) > 0) {
-        RenderColor color = {newColor[0], newColor[1], newColor[2]};
-        scene.addCurve(newEquation, newLineWidth, color);
-        logLines.push_back(std::string("[Graph] Added curve: ") + newEquation);
-        newEquation[0] = '\0';
     }
 
     ImGui::End();

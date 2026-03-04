@@ -5,6 +5,7 @@ bin/
 
 # Extra files
 program-rigid-render/render-test-copy.cpp
+tasks.txt
 
 # Debug imgs
 *.PNG

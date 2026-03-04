@@ -6,6 +6,10 @@ add_library(lib-parser STATIC
     StateMachine.h
     Scanner.cpp
     Scanner.h
+    SymbolTable.cpp
+    SymbolTable.h
+    Node.cpp
+    Node.h
     Parser.cpp
     Parser.h
     Expression.cpp

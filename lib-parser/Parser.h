@@ -3,20 +3,43 @@
 
 #include "Tokenizer.h"
 #include "Scanner.h"
+#include "Node.h"
 #include <config.h>
 #include <vector>
 #include <string>
+#include <memory>
 
-int getPrecedence(TokenType type);
 
-// Check if operator is right-associative (e.g., ^)
-bool isRightAssociative(TokenType type);
-bool isOperator(TokenType type);
 bool isFunction(TokenType type);
 
-// Convert infix token stream to postfix
-std::vector<TokenClass> toPostfix(ScannerClass& scanner);
-// Parse from string directly
-std::vector<TokenClass> toPostfix(const std::string& equation);
+std::unique_ptr<Node> parseToAST(const std::string& equation);
+
+
+class Parser {
+    private:
+        ScannerClass& scanner;
+        TokenClass currentToken;
+        
+        void advance();
+        TokenClass peek();
+        bool match(TokenType type);
+        
+        void expect(TokenType type, const std::string& message);
+
+        std::unique_ptr<Node> parseAdditive();
+        std::unique_ptr<Node> parseMultiplicative();
+        std::unique_ptr<Node> parseExponent();
+        std::unique_ptr<Node> parseUnary();
+        std::unique_ptr<Node> parsePostfix();
+        std::unique_ptr<Node> parsePrimary();
+
+
+    public:
+        explicit Parser(ScannerClass& sc);
+        std::unique_ptr<Node> parse();
+
+};
+
+
 
 #endif /* _PARSER_H */

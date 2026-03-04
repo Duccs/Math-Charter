@@ -21,9 +21,9 @@ struct RenderColor {
 
 struct FontDef { std::string name; std::string filename; };
 
-double red(int r);
-double green(int g);
-double blue(int b);
+float red(int r);
+float green(int g);
+float blue(int b);
 
 std::filesystem::path getPath();
 

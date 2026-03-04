@@ -2,42 +2,6 @@
 #include <stack>
 #include <stdexcept>
 
-int getPrecedence(TokenType type) {
-    switch (type) {
-        case PLUS_TOKEN:
-        case MINUS_TOKEN:
-            return 2;
-        
-        case TIMES_TOKEN:
-        case DIVIDE_TOKEN:
-            return 3;
-        
-        case FACTORIAL_TOKEN:
-            return 4;
-        
-        // Left paren has lowest precedence (a real mystery)
-        case LPAREN_TOKEN:
-            return 0;
-
-        default:
-            // Debug
-            WARN("IN:'Parser.cpp getPrecedence()' Unhandled token type in getPrecedence: " << TokenClass::GetTokenTypeName(type));
-            return 0;
-    }
-}
-
-bool isRightAssociative(TokenType type) {
-    // Exponentiation is right-associative: 2^3^4 = 2^(3^4)
-    return type == FACTORIAL_TOKEN;
-}
-
-bool isOperator(TokenType type) {
-    return type == PLUS_TOKEN || 
-           type == MINUS_TOKEN || 
-           type == TIMES_TOKEN || 
-           type == DIVIDE_TOKEN ||
-           type == FACTORIAL_TOKEN;
-}
 
 bool isFunction(TokenType type) {
     // Manually update for new functions added to TokenType
@@ -67,122 +31,179 @@ bool isFunction(TokenType type) {
     }
 }
 
-std::vector<TokenClass> toPostfix(ScannerClass& scanner){
-    std::vector<TokenClass> output;
-    std::stack<TokenClass> operatorStack;
-
-    TokenClass token = scanner.GetNextToken();
-    TokenClass prevToken(BAD_TOKEN, "");
-    TokenType type;
-
-    while (token.GetTokenType() != EOF_TOKEN)
-    {
-        type = token.GetTokenType();
-
-        // Numbers and variables go straight to output
-        if(type == NUMBER_TOKEN || type == VARIABLE_TOKEN){
-            output.push_back(token);
-        }
-        else if (type == IDENTIFIER_TOKEN) {
-            // This should only be single-character variables that aren't reserved words
-            // If we get a multi-character identifier, it means the state machine missed a reserved word
-            throw std::runtime_error("Error. Unrecognized identifier: " + token.GetLexeme() + " at line " + std::to_string(scanner.GetLineNumber()));
-        }
-        // Constants also go to output as numbers
-        else if (type == PI_TOKEN || type == EULER_TOKEN || type == PHI_TOKEN) {
-            output.push_back(token);
-        }
-        // Functions get pushed to operator stack
-        else if (isFunction(type)) {
-            operatorStack.push(token);
-        }
-        // Left parenthesis
-        else if (type == LPAREN_TOKEN) {
-            operatorStack.push(token);
-        }
-        // Right parenthesis: pop until left parenthesis
-        else if (type == RPAREN_TOKEN) {
-            while (!operatorStack.empty() && 
-                   operatorStack.top().GetTokenType() != LPAREN_TOKEN) {
-                output.push_back(operatorStack.top());
-                operatorStack.pop();
-            }
-
-            if (operatorStack.empty()) {
-                throw std::runtime_error("Mismatched parentheses");
-            }
-
-            // Pop the left parenthesis (don't add to output)
-            operatorStack.pop();
-
-            // If there's a function on top, pop it to output
-            if (!operatorStack.empty() && isFunction(operatorStack.top().GetTokenType())) {
-                output.push_back(operatorStack.top());
-                operatorStack.pop();
-            }
-        }
-
-        // Operators
-        else if (isOperator(type)) {
-            // Handle unary minus: convert to (0 - x) by pushing 0 first
-            if (type == MINUS_TOKEN) {
-                TokenType prevType = prevToken.GetTokenType();
-                // Unary if at start, after operator, after left paren, or after comma
-                if (prevType == BAD_TOKEN || isOperator(prevType) || 
-                    prevType == LPAREN_TOKEN || prevType == COMMA_TOKEN) {
-                    output.push_back(TokenClass(NUMBER_TOKEN, "0"));
-                }
-            }
-            
-            // Pop operators with higher or equal precedence (respecting associativity)
-            while (!operatorStack.empty()) {
-                TokenType topType = operatorStack.top().GetTokenType();
-                
-                if (!isOperator(topType)) break;
-                
-                int topPrec = getPrecedence(topType);
-                int curPrec = getPrecedence(type);
-                
-                // Pop if: top has higher precedence, OR
-                // same precedence AND current is left-associative
-                bool shouldPop = (topPrec > curPrec) ||
-                                 (topPrec == curPrec && !isRightAssociative(type));
-                
-                if (!shouldPop) break;
-                
-                output.push_back(operatorStack.top());
-                operatorStack.pop();
-            }
-            
-            operatorStack.push(token);
-        }
-
-        // Comma (for multi-argument functions - just pop to left paren)
-        else if (type == COMMA_TOKEN) {
-            while (!operatorStack.empty() && 
-                   operatorStack.top().GetTokenType() != LPAREN_TOKEN) {
-                output.push_back(operatorStack.top());
-                operatorStack.pop();
-            }
-        }
-        
-        prevToken = token;
-        token = scanner.GetNextToken();
+void Parser::advance() {
+    currentToken = scanner.GetNextToken();
+}
+    
+TokenClass Parser::peek() {
+    return scanner.PeekNextToken();
+}
+    
+bool Parser::match(TokenType type) {
+    return currentToken.GetTokenType() == type;
+}
+    
+void Parser::expect(TokenType type, const std::string& message) {
+    if (!match(type)) {
+        throw std::runtime_error(message + " at line " + std::to_string(scanner.GetLineNumber()));
+    }
+    advance();
+}
+    
+// + and -
+std::unique_ptr<Node> Parser::parseAdditive() {
+    auto left = parseMultiplicative();
+    
+    while (match(PLUS_TOKEN) || match(MINUS_TOKEN)) {
+        TokenType op = currentToken.GetTokenType();
+        advance();
+        auto right = parseMultiplicative();
+        left = makeBinaryNode(op, std::move(left), std::move(right));
     }
     
-    // Pop remaining operators
-    while (!operatorStack.empty()) {
-        if (operatorStack.top().GetTokenType() == LPAREN_TOKEN) {
-            throw std::runtime_error("Mismatched parentheses");
-        }
-        output.push_back(operatorStack.top());
-        operatorStack.pop();
+    return left;
+}
+    
+// * and /
+std::unique_ptr<Node> Parser::parseMultiplicative() {
+    auto left = parseExponent();
+    
+    while (match(TIMES_TOKEN) || match(DIVIDE_TOKEN)) {
+        TokenType op = currentToken.GetTokenType();
+        advance();
+        auto right = parseExponent();
+        left = makeBinaryNode(op, std::move(left), std::move(right));
     }
     
-    return output;
+    return left;
 }
 
-std::vector<TokenClass> toPostfix(const std::string& equation) {
+// ^
+std::unique_ptr<Node> Parser::parseExponent() {
+    auto left = parseUnary();
+    
+    if (match(EXP_TOKEN)) {
+        advance();
+        auto right = parseExponent();  // Right-associative: recurse on same level
+        left = makeBinaryNode(EXP_TOKEN, std::move(left), std::move(right));
+    }
+    
+    return left;
+}
+
+// unary minus
+std::unique_ptr<Node> Parser::parseUnary() {
+    if (match(MINUS_TOKEN)) {
+        advance();
+        auto operand = parseUnary();
+        return makeUnaryNode(MINUS_TOKEN, std::move(operand));
+    }
+    
+    return parsePostfix();
+}
+
+// !
+std::unique_ptr<Node> Parser::parsePostfix() {
+    auto operand = parsePrimary();
+    
+    while (match(FACTORIAL_TOKEN)) {
+        advance();
+        operand = makeUnaryNode(FACTORIAL_TOKEN, std::move(operand));
+    }
+    
+    return operand;
+}
+    
+// numbers, variables, constants, functions, parentheses
+std::unique_ptr<Node> Parser::parsePrimary() {
+    TokenType type = currentToken.GetTokenType();
+    
+    // Number literal
+    if (match(NUMBER_TOKEN)) {
+        float value = std::stof(currentToken.GetLexeme());
+        advance();
+        return std::make_unique<ConstantNode>(value);
+    }
+    
+    // Variable
+    if (match(VARIABLE_TOKEN)) {
+        std::string name = currentToken.GetLexeme();
+        advance();
+        return std::make_unique<VariableNode>(name);
+    }
+    
+    // Constants
+    if (match(PI_TOKEN)) {
+        advance();
+        return std::make_unique<ConstantNode>(static_cast<float>(M_PI));
+    }
+    if (match(EULER_TOKEN)) {
+        advance();
+        return std::make_unique<ConstantNode>(static_cast<float>(M_E));
+    }
+    if (match(PHI_TOKEN)) {
+        advance();
+        return std::make_unique<ConstantNode>(static_cast<float>(M_PHI));
+    }
+    if (match(INFINITY_TOKEN)) {
+        advance();
+        return std::make_unique<ConstantNode>(std::numeric_limits<float>::infinity());
+    }
+    if (match(NAN_TOKEN)) {
+        advance();
+        return std::make_unique<ConstantNode>(std::numeric_limits<float>::quiet_NaN());
+    }
+    
+    // Functions
+    if (isFunction(type)) {
+        TokenType funcType = type;
+        advance();
+        expect(LPAREN_TOKEN, "Expected '(' after function name");
+        auto arg = parseAdditive();
+        expect(RPAREN_TOKEN, "Expected ')' after function argument");
+        return makeUnaryNode(funcType, std::move(arg));
+    }
+    
+    // Parenthesized expression
+    if (match(LPAREN_TOKEN)) {
+        advance();
+        auto expr = parseAdditive();
+        expect(RPAREN_TOKEN, "Expected ')' to close parenthesis");
+        return expr;
+    }
+    
+    // Pipe for absolute value |x|
+    if (match(PIPE_TOKEN)) {
+        advance();
+        auto expr = parseAdditive();
+        expect(PIPE_TOKEN, "Expected '|' to close absolute value");
+        return makeUnaryNode(ABS_TOKEN, std::move(expr));
+    }
+    
+    throw std::runtime_error("Unexpected token: " + currentToken.GetLexeme() + 
+                                " at line " + std::to_string(scanner.GetLineNumber()));
+}
+    
+Parser::Parser(ScannerClass& sc) : scanner(sc), currentToken(EOF_TOKEN, "") {
+    advance();  // Load first token
+}
+    
+std::unique_ptr<Node> Parser::parse() {
+    if (match(EOF_TOKEN)) {
+        throw std::runtime_error("Empty expression");
+    }
+    
+    auto ast = parseAdditive();
+    
+    if (!match(EOF_TOKEN)) {
+        throw std::runtime_error("Unexpected token after expression: " + currentToken.GetLexeme());
+    }
+    
+    return ast;
+}
+
+std::unique_ptr<Node> parseToAST(const std::string& equation) {
     ScannerClass scanner(equation, false);
-    return toPostfix(scanner);
+    Parser parser(scanner);
+    return parser.parse();
 }

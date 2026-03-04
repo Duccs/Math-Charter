@@ -1,4 +1,5 @@
 #include "VertexGenerator.h"
+#include "SymbolTable.h"
 #include <algorithm>
 #include <limits>
 
@@ -23,6 +24,7 @@ static inline void emitVertex(
 
 static float computeScreenError(
     Expression& expr,
+    SymbolTable& symbols,
     float x1, float y1,
     float x2, float y2,
     float scaleX, float scaleY
@@ -34,7 +36,8 @@ static float computeScreenError(
     float maxError = 0.0f;
     for (float t : {0.25f, 0.5f, 0.75f}) {
         float xs = x1 + t * (x2 - x1);
-        float ys = expr.evaluate(xs);
+        symbols.SetValue("x", xs);
+        float ys = expr.evaluate(symbols);
 
         if (!isFinite(ys)) return std::numeric_limits<float>::infinity();
 
@@ -54,6 +57,7 @@ static float computeScreenError(
 
 static void adaptiveTessellate(
     Expression& expr,
+    SymbolTable& symbols,
     float x1, float y1,
     float x2, float y2,
     GraphView view,
@@ -80,9 +84,10 @@ static void adaptiveTessellate(
     if (!fin1 || !fin2) {
         if (depth < maxDepth) {
             float xMid = (x1 + x2) * 0.5f;
-            float yMid = expr.evaluate(xMid);
-            adaptiveTessellate(expr, x1, y1, xMid, yMid, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
-            adaptiveTessellate(expr, xMid, yMid, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
+            symbols.SetValue("x", xMid);
+            float yMid = expr.evaluate(symbols);
+            adaptiveTessellate(expr, symbols, x1, y1, xMid, yMid, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
+            adaptiveTessellate(expr, symbols, xMid, yMid, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
         } else {
             // Max depth reached — emit whichever endpoint is finite
             if (fin1) emitVertex(x1, y1, view, strips, inStrip);
@@ -91,23 +96,20 @@ static void adaptiveTessellate(
         return;
     }
 
-    // Both endpoints finite → normal flatness test.
-    float error = computeScreenError(expr, x1, y1, x2, y2, scaleX, scaleY);
+    float error = computeScreenError(expr, symbols, x1, y1, x2, y2, scaleX, scaleY);
 
     if (error > tolerance && depth < maxDepth) {
-        // Not flat enough yet. subdivide.
         float xMid = (x1 + x2) * 0.5f;
-        float yMid = expr.evaluate(xMid);
-        adaptiveTessellate(expr, x1, y1, xMid, yMid, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
-        adaptiveTessellate(expr, xMid, yMid, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
+        symbols.SetValue("x", xMid);
+        float yMid = expr.evaluate(symbols);
+        adaptiveTessellate(expr, symbols, x1, y1, xMid, yMid, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
+        adaptiveTessellate(expr, symbols, xMid, yMid, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, depth + 1, maxDepth);
     } else if (error <= tolerance) {
-        // Segment is flat enough. emit the start point.
         emitVertex(x1, y1, view, strips, inStrip);
     } else {
         inStrip = false;
     }
 }
-
 
 std::vector<std::vector<float>> generateGraphPoints(const char* equation, GraphView view) {
     std::vector<std::vector<float>> strips;
@@ -115,6 +117,9 @@ std::vector<std::vector<float>> generateGraphPoints(const char* equation, GraphV
     if (!expr.isValid()) {
         throw std::runtime_error("Invalid equation: " + expr.getError());
     }
+
+    SymbolTable symbols;
+    symbols.AddEntry("x");
 
     float scaleX = 2.0f / (view.maxX - view.minX);
     float scaleY = 2.0f / (view.maxY - view.minY);
@@ -129,13 +134,16 @@ std::vector<std::vector<float>> generateGraphPoints(const char* equation, GraphV
     for (int i = 0; i < numSegments; ++i) {
         float x1 = view.minX + i * step;
         float x2 = view.minX + (i + 1) * step;
-        float y1 = expr.evaluate(x1);
-        float y2 = expr.evaluate(x2);
-        adaptiveTessellate(expr, x1, y1, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, 0, maxDepth);
+        symbols.SetValue("x", x1);
+        float y1 = expr.evaluate(symbols);
+        symbols.SetValue("x", x2);
+        float y2 = expr.evaluate(symbols);
+        adaptiveTessellate(expr, symbols, x1, y1, x2, y2, view, strips, inStrip, scaleX, scaleY, tolerance, 0, maxDepth);
     }
 
     float finalX = view.maxX;
-    float finalY = expr.evaluate(finalX);
+    symbols.SetValue("x", finalX);
+    float finalY = expr.evaluate(symbols);
     if (isFinite(finalY)) {
         emitVertex(finalX, finalY, view, strips, inStrip);
     }

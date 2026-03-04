@@ -18,6 +18,7 @@ class ScannerClass {
         ScannerClass(const std::string& inputString, bool isFileName = false);
         ~ScannerClass();
         TokenClass GetNextToken();
+        TokenClass PeekNextToken();
         int GetLineNumber() const { return LineNumber; }
 };
 

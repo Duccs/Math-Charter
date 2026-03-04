@@ -89,3 +89,18 @@ TokenClass ScannerClass::GetNextToken() {
 
     return token;
 }
+
+TokenClass ScannerClass::PeekNextToken() {
+    std::streampos oldPosition = input->tellg();
+    int oldLine = LineNumber;
+
+    TokenClass token = GetNextToken();
+
+    if(!input->good())      // if we triggered EOF, then seekg doesn't work,
+        input->clear();     // unless we first clear()
+
+    input->seekg(oldPosition);
+    LineNumber = oldLine;
+    
+    return token;
+}
