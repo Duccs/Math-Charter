@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 static const ImVec4 curvePalette[] = {
                     {0.851f, 0.0f, 0.0f, 1.0f},  // Red #D90000
@@ -16,10 +17,26 @@ static const ImVec4 curvePalette[] = {
                     {0.0f,  0.0f,  0.0f, 1.0f},   // Black #3c3836
                 };
 
+// Animation state for oscillating constants
+struct ConstantAnimState {
+    float minValue = -5.0f;
+    float maxValue = 5.0f;
+    float speed = 1.0f;       // Units per second
+    bool isPlaying = false;
+    short int direction = 1;        // 1 = increasing, -1 = decreasing
+};
+
+// Global animation state map (persists across frames)
+inline std::unordered_map<std::string, ConstantAnimState>& getConstantAnimStates() {
+    static std::unordered_map<std::string, ConstantAnimState> states;
+    return states;
+}
+
 void GraphViewportWindow(bool* show, GraphViewport& viewport);
 
 // Controls for the viewport
 void GraphControlPanel(bool* show, GraphViewport& viewport,
-                       std::vector<std::string>& logLines, PreferencesState* state);
+                       std::vector<std::string>& logLines, PreferencesState* state,
+                       float deltaTime = 0.0f);
 
 #endif /* _VIEWPORT_UI_H_ */

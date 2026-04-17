@@ -1,7 +1,7 @@
 #ifndef _NODE_H_
 #define _NODE_H_
 
-#include "Tokenizer.h"
+#include <Tokenizer.h>
 #include "SymbolTable.h"
 #include <memory>
 #include <cmath>
@@ -22,6 +22,11 @@
 
 // Forward declarations
 class Node;
+class ConstantNode;
+class VariableNode;
+class UnaryOpNode;
+class BinaryOpNode;
+class AssignmentNode;
 
 // Type aliases for function pointers
 using UnaryFunc = float(*)(float);
@@ -78,6 +83,27 @@ public:
     float evaluate(SymbolTable& symbols) const override {
         return operation(left->evaluate(symbols), right->evaluate(symbols));
     }
+};
+
+class AssignmentNode : public Node {
+private:
+    std::string targetVariable;
+    std::unique_ptr<Node> valueExpression;
+public:
+    AssignmentNode(const std::string& varName, std::unique_ptr<Node> expr)
+        : targetVariable(varName), valueExpression(std::move(expr)) {}
+    
+    float evaluate(SymbolTable& symbols) const override {
+        float value = valueExpression->evaluate(symbols);
+        VariableType type = SymbolTable::IsReserved(targetVariable) 
+                          ? VariableType::Coordinate 
+                          : VariableType::Constant;
+        symbols.SetOrAddEntry(targetVariable, value, type);
+        return value;
+    }
+    
+    const std::string& getTargetVariable() const { return targetVariable; }
+    const Node* getValueExpression() const { return valueExpression.get(); }
 };
 
 // Factory functions

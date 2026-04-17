@@ -1,4 +1,5 @@
 #include "Graphscene.h"
+#include <Expression.h>
 
 // Constructor
 GraphScene::GraphScene(GraphView initialView)
@@ -202,13 +203,61 @@ std::vector<float> GraphScene::generateMinorLines(GraphView view, float spacing)
 }
 
 // Add a new curve to the scene
+// Returns nullptr if the equation is a constant assignment
 Curve2D* GraphScene::addCurve(const char* equation, float lineWidth, RenderColor color) {
-    curves.push_back(std::make_unique<Curve2D>(equation, lineWidth, color));
-    Curve2D* newCurve = curves.back().get();
+
+    Expression expr = Expression::parse(equation);
+    if (!expr.isValid()) {
+        throw std::runtime_error("Invalid equation: " + expr.getError());
+    }
     
-    newCurve->generate(view);
-    newCurve->upload();
-    return newCurve;
+    const ExpressionMetadata& meta = expr.getMetadata();
+    
+    switch (meta.kind) {
+        case ExpressionKind::ConstantAssignment: {
+            SymbolTable evalTable;
+            evalTable.MergeConstants(constants_);  // Include existing constants
+            float value = expr.evaluate(evalTable);
+            constants_.SetOrAddEntry(meta.definesVariable, value, VariableType::Constant);
+            return nullptr;  // No curve created
+        }
+        
+        case ExpressionKind::CoordinateFunc:
+        case ExpressionKind::ImplicitFunc: {
+            curves.push_back(std::make_unique<Curve2D>(equation, lineWidth, color));
+            Curve2D* newCurve = curves.back().get();
+            newCurve->generate(view, &constants_);
+            newCurve->upload();
+            return newCurve;
+        }
+        
+        case ExpressionKind::Invalid:
+        default:
+            throw std::runtime_error("Cannot draw expression: " + expr.getError());
+    }
+}
+
+Curve2D* GraphScene::editCurve(Curve2D* curve, const char* newEquation) {
+    if (!curve) return nullptr;
+
+    Expression expr = Expression::parse(newEquation);
+    if (!expr.isValid()) {
+        throw std::runtime_error("Invalid equation: " + expr.getError());
+    }
+    
+    const ExpressionMetadata& meta = expr.getMetadata();
+    
+    // Only allow editing to another drawable expression
+    if (meta.kind != ExpressionKind::CoordinateFunc && meta.kind != ExpressionKind::ImplicitFunc) {
+        throw std::runtime_error("Edited equation must be a drawable function");
+    }
+    
+    // Update the curve's equation and regenerate
+    curve->setEquation(newEquation);
+    curve->generate(view, &constants_);
+    curve->upload();
+    
+    return curve;
 }
 
 // Remove a curve from the scene
@@ -342,4 +391,12 @@ void GraphScene::cleanup() {
     minorGridVBO = 0;
     
     // Curves clean up themselves in their destructors
+}
+
+// Set a user-defined constant
+void GraphScene::setConstant(const std::string& name, float value) {
+    if (SymbolTable::IsReserved(name)) {
+        throw std::runtime_error("Cannot set coordinate variable '" + name + "' as a constant");
+    }
+    constants_.SetOrAddEntry(name, value, VariableType::Constant);
 }

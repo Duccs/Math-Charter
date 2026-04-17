@@ -1,8 +1,9 @@
 # Create the library
-add_library(lib-assist STATIC 
-    assist.cpp 
+add_library(lib-assist STATIC
+    assist.cpp
     assist.h
     config.h
+    Exceptions.h
     mouse_controller.cpp
     mouse_controller.h
 )

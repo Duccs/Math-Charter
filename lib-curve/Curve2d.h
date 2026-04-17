@@ -2,6 +2,7 @@
 #define _CURVE2D_H_
 
 #include "Line2d.h"
+#include <SymbolTable.h>
 #include <string>
 
 
@@ -9,12 +10,16 @@ class Curve2D : public Line2D
 {
     protected:
         std::string equation;
+        const SymbolTable* cachedConstants = nullptr;  // Cached for use during updates
 
     public:
         Curve2D(const char* equation, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
         ~Curve2D() override;
 
         void generate(GraphView view) override;  // Generate vertex data
+        void generate(GraphView view, const SymbolTable* globalConstants);  // Generate with constants
+        
+        void setConstants(const SymbolTable* constants) { cachedConstants = constants; }
 
         void setEquation(const char* equation);
         const std::string& getEquation() const;

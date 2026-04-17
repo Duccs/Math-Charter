@@ -189,7 +189,8 @@ int main() {
 
         // Graph control panel
         // -------------------
-        GraphControlPanel(&menuBarState.showGraphControls, viewport, logLines, &prefsState);
+        float deltaTime = ImGui::GetIO().DeltaTime;
+        GraphControlPanel(&menuBarState.showGraphControls, viewport, logLines, &prefsState, deltaTime);
 
         // Log window
         // ----------

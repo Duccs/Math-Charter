@@ -3,6 +3,7 @@
 
 #include <Curve2d.h>
 #include <Shader.h>
+#include <SymbolTable.h>
 #include <vector>
 #include <memory>
 
@@ -17,6 +18,9 @@ class GraphScene {
     private:
         GraphView view;
         std::vector<std::unique_ptr<Curve2D>> curves;
+        
+        // Global constants table
+        SymbolTable constants_;
 
         // Grid resources
         std::vector<float> axisGridLines;
@@ -45,7 +49,9 @@ class GraphScene {
         ~GraphScene();
 
         // Add or remove curves
+        // Returns nullptr if the equation is a constant
         Curve2D* addCurve(const char* equation, float lineWidth = 2.0f, RenderColor color = {0.0f, 0.0f, 0.0f});
+        Curve2D* editCurve(Curve2D* curve, const char* newEquation);
         void removeCurve(Curve2D* curve);
 
         // View manipulation
@@ -57,6 +63,12 @@ class GraphScene {
 
         // Cleanup
         void cleanup();
+        
+        // Constants management
+        const SymbolTable& getConstants() const { return constants_; }
+        void clearConstants() { constants_.Clear(); }
+        void setConstant(const std::string& name, float value);
+        void removeConstant(const std::string& name) { constants_.RemoveEntry(name); }
 
         // Stuff
         GraphView& getView() { return view; }

@@ -31,6 +31,7 @@ add_subdirectory(lib)
 # Define libraries
 add_subdirectory(lib-assist)
 add_subdirectory(lib-shader)
+add_subdirectory(lib-scanner)
 add_subdirectory(lib-parser)
 add_subdirectory(lib-curve)
 add_subdirectory(lib-scene)

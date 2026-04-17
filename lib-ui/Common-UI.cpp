@@ -35,7 +35,7 @@ void LogWindow(bool* show, std::vector<std::string>& logLines) {
         logLines.clear();
     }
 
-    ImGui::Separator();
+    //ImGui::Separator();
     ImGui::BeginChild("LogScroll", ImVec2(0, 0), ImGuiChildFlags_None,
                         ImGuiWindowFlags_HorizontalScrollbar);
     for (const auto& line : logLines)

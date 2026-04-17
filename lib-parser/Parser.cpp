@@ -129,6 +129,7 @@ std::unique_ptr<Node> Parser::parsePrimary() {
     if (match(VARIABLE_TOKEN)) {
         std::string name = currentToken.GetLexeme();
         advance();
+        usedVariables.insert(name);  // Track variable usage
         return std::make_unique<VariableNode>(name);
     }
     
@@ -187,13 +188,37 @@ std::unique_ptr<Node> Parser::parsePrimary() {
 Parser::Parser(ScannerClass& sc) : scanner(sc), currentToken(EOF_TOKEN, "") {
     advance();  // Load first token
 }
+
+// Top-level parsing
+// Handles assignment "var = expr"
+std::unique_ptr<Node> Parser::parseStatement() {
+    // Check for assignment pattern
+    if (match(VARIABLE_TOKEN)) {
+        TokenClass varToken = currentToken;
+        TokenClass nextToken = peek();
+        
+        if (nextToken.GetTokenType() == EQUAL_TOKEN) {
+            std::string varName = varToken.GetLexeme();
+            assignmentTarget = varName;
+            
+            advance();  // consume variable
+            advance();  // consume '='
+            
+            auto valueExpr = parseAdditive();
+            return std::make_unique<AssignmentNode>(varName, std::move(valueExpr));
+        }
+    }
+    
+    // Not an assignment, parse as regular expression
+    return parseAdditive();
+}
     
 std::unique_ptr<Node> Parser::parse() {
     if (match(EOF_TOKEN)) {
         throw std::runtime_error("Empty expression");
     }
     
-    auto ast = parseAdditive();
+    auto ast = parseStatement();
     
     if (!match(EOF_TOKEN)) {
         throw std::runtime_error("Unexpected token after expression: " + currentToken.GetLexeme());
@@ -206,4 +231,13 @@ std::unique_ptr<Node> parseToAST(const std::string& equation) {
     ScannerClass scanner(equation, false);
     Parser parser(scanner);
     return parser.parse();
+}
+
+std::unique_ptr<Node> parseToAST(const std::string& equation, std::set<std::string>& outVariables, std::string& outAssignmentTarget) {
+    ScannerClass scanner(equation, false);
+    Parser parser(scanner);
+    auto ast = parser.parse();
+    outVariables = parser.getUsedVariables();
+    outAssignmentTarget = parser.getAssignmentTarget();
+    return ast;
 }
