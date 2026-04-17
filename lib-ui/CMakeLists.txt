@@ -10,6 +10,8 @@ add_library(lib-ui STATIC
     Preferences-UI.h
     Viewport-UI.cpp
     Viewport-UI.h
+    AxisLabels-UI.cpp
+    AxisLabels-UI.h
 )
 
 # Link the library

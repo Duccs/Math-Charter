@@ -1,4 +1,5 @@
 #include "Viewport-UI.h"
+#include "AxisLabels-UI.h"
 #include <cstdio>
 #include <cstring>
 #include <set>
@@ -28,6 +29,12 @@ void GraphViewportWindow(bool* show, GraphViewport& viewport) {
         // Display FBO texture
         ImTextureID texID = (ImTextureID)(intptr_t)viewport.getTextureID();
         ImGui::Image(texID, size, ImVec2(0, 1), ImVec2(1, 0));
+
+        // Overlay numbering ticks on top of the FBO texture
+        DrawAxisTickOverlay(ImGui::GetWindowDrawList(),
+                            ImGui::GetItemRectMin(), size,
+                            viewport.getScene().getView(),
+                            viewport.getScene().getGridSpacing());
 
         // Mouse interaction when hovering over the viewport
         if (ImGui::IsItemHovered()) {
